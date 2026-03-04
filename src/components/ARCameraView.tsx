@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { Mission } from '../types';
 import { worldsData } from '../worlds/worldsData';
 import { worldThemes } from '../worlds/worldThemes';
+import { assetUrl } from '../utils/assets';
 
 interface ARCameraViewProps {
     mission: Mission;
@@ -136,7 +137,7 @@ export const ARCameraView: React.FC<ARCameraViewProps> = ({ mission, worldId, on
                         {/* The actual emoji or image */}
                         {mission.imageUrl ? (
                             <img
-                                src={mission.imageUrl}
+                                src={assetUrl(mission.imageUrl!)}
                                 alt="Mission Target"
                                 className="relative w-32 h-32 object-contain filter drop-shadow-2xl"
                                 onError={(e) => {
@@ -166,7 +167,7 @@ export const ARCameraView: React.FC<ARCameraViewProps> = ({ mission, worldId, on
             {hasPermission && catchItemImage && (
                 <div className="absolute inset-x-0 bottom-8 flex justify-center z-30 pointer-events-none">
                     <img
-                        src={catchItemImage}
+                        src={assetUrl(catchItemImage!)}
                         alt="Throw Item"
                         onClick={handleThrow}
                         className={`pointer-events-auto transition-all duration-[600ms] ease-in cursor-pointer drop-shadow-2xl 

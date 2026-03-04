@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Mission } from '../types';
+import { assetUrl } from '../utils/assets';
 import { calculateDistance, calculateBearing } from '../utils/geo';
 import { playSuccessSound } from '../utils/audio';
 import { worldsData } from '../worlds/worldsData';
@@ -74,7 +75,7 @@ export const MapView: React.FC<MapViewProps> = ({ missions, currentMissionIndex,
         }
 
         const iconContent = missionImageUrl
-            ? `<img src="${missionImageUrl}" class="w-8 h-8 object-contain drop-shadow-md" alt="mission" onerror="this.outerHTML='<span class=\\'text-2xl\\'>${displayEmoji}</span>'" />`
+            ? `<img src="${assetUrl(missionImageUrl)}" class="w-8 h-8 object-contain drop-shadow-md" alt="mission" onerror="this.outerHTML='<span class=\\'text-2xl\\'>${displayEmoji}</span>'" />`
             : `<span class="text-2xl">${displayEmoji}</span>`;
 
         return L.divIcon({
