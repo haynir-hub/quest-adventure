@@ -106,6 +106,9 @@ export const ARCameraView: React.FC<ARCameraViewProps> = ({
     );
   }
 
+  const throwingAnimClass =
+    "-translate-y-[80vh] scale-[0.3] opacity-0 rotate-[720deg]";
+
   return (
     <div
       className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center overflow-hidden"
@@ -188,7 +191,7 @@ export const ARCameraView: React.FC<ARCameraViewProps> = ({
               className={`pointer-events-auto transition-all duration-[600ms] ease-in cursor-pointer drop-shadow-2xl
                                 ${
                                   isThrowing
-                                    ? "-translate-y-[80vh] scale-[0.3] opacity-0 rotate-[720deg]"
+                                    ? throwingAnimClass
                                     : "w-32 h-32 object-contain hover:scale-110 active:scale-90"
                                 }`}
               onError={(e) => {
@@ -197,11 +200,12 @@ export const ARCameraView: React.FC<ARCameraViewProps> = ({
             />
           ) : (
             <button
+              type="button"
               onClick={handleThrow}
               className={`pointer-events-auto transition-all duration-[600ms] ease-in cursor-pointer drop-shadow-2xl text-[96px] leading-none
                                 ${
                                   isThrowing
-                                    ? "-translate-y-[80vh] scale-[0.3] opacity-0 rotate-[720deg]"
+                                    ? throwingAnimClass
                                     : "hover:scale-110 active:scale-90"
                                 }`}
               aria-label="Throw item"
