@@ -58,6 +58,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const nextMission = missions[currentMissionIndex];
   const [hasPlayedSound, setHasPlayedSound] = React.useState(false);
   const [gpsErrorDismissed, setGpsErrorDismissed] = React.useState(false);
+  const [deviceHeading, setDeviceHeading] = React.useState<number | null>(null);
 
   const world = worldsData.find((w) => w.id === worldId);
   const worldEmoji = world?.emoji || "📍";
@@ -149,6 +150,23 @@ export const MapView: React.FC<MapViewProps> = ({
       setHasPlayedSound(false);
     }
   }, [isArrived, hasPlayedSound]);
+
+  useEffect(() => {
+    const handler = (e: DeviceOrientationEvent) => {
+      if (e.alpha !== null) setDeviceHeading(e.alpha);
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const api = DeviceOrientationEvent as any;
+    if (typeof api.requestPermission === "function") {
+      api.requestPermission().then((result: string) => {
+        if (result === "granted")
+          window.addEventListener("deviceorientation", handler);
+      });
+    } else {
+      window.addEventListener("deviceorientation", handler);
+    }
+    return () => window.removeEventListener("deviceorientation", handler);
+  }, []);
 
   if (!currentPosition) {
     return (
@@ -286,7 +304,9 @@ export const MapView: React.FC<MapViewProps> = ({
               {bearingToNext !== null && (
                 <div className="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-700 rounded-full w-14 h-14 border-2 border-slate-200 dark:border-slate-600 shadow-inner pointer-events-none">
                   <div
-                    style={{ transform: `rotate(${bearingToNext}deg)` }}
+                    style={{
+                      transform: `rotate(${(((bearingToNext - (deviceHeading ?? 0)) % 360) + 360) % 360}deg)`,
+                    }}
                     className="w-full h-full flex items-center justify-center text-blue-500 dark:text-blue-400 text-2xl transition-transform duration-500 drop-shadow-md"
                   >
                     ↑
