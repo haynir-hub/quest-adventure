@@ -182,6 +182,17 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
     setSelectedMissionIndex(null);
   };
 
+  const handleReorder = (index: number, direction: -1 | 1) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= missions.length) return;
+    const reordered = [...missions];
+    [reordered[index], reordered[newIndex]] = [
+      reordered[newIndex],
+      reordered[index],
+    ];
+    setMissions(reordered);
+  };
+
   const handleSaveAdventure = () => {
     if (!selectedWorldId || !adventureName.trim() || missions.length === 0) {
       alert("נא למלא את שם ההרפתקה ולוודא שיש לפחות משימה אחת");
@@ -329,7 +340,21 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
             </div>
 
             {missions.length > 0 && (
-              <div className="mt-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+              <div className="mt-6 bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
+                <h3 className="text-lg font-bold mb-3 text-slate-800">סדר המשימות</h3>
+                <ul className="flex flex-col gap-2">
+                  {missions.map((m, i) => (
+                    <li key={m.id} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-200">
+                      <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                      <span className="flex-1 text-slate-700 text-sm font-medium truncate">{m.title || `משימה ${i + 1}`}</span>
+                      <button type="button" onClick={() => handleReorder(i, -1)} disabled={i === 0} className="text-slate-400 hover:text-slate-700 disabled:opacity-20 text-lg leading-none px-1">↑</button>
+                      <button type="button" onClick={() => handleReorder(i, 1)} disabled={i === missions.length - 1} className="text-slate-400 hover:text-slate-700 disabled:opacity-20 text-lg leading-none px-1">↓</button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="mt-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <h3 className="text-xl font-bold mb-4 text-slate-800">
                   שמירת ההרפתקה
                 </h3>

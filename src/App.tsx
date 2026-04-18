@@ -103,6 +103,31 @@ function App() {
 
   // Load state on mount — per-key try/catch so one corrupt entry doesn't block others
   useEffect(() => {
+    // Deep-link import: ?adventure=BASE64
+    const params = new URLSearchParams(window.location.search);
+    const encodedAdv = params.get("adventure");
+    if (encodedAdv) {
+      try {
+        const imported = JSON.parse(
+          decodeURIComponent(escape(atob(encodedAdv))),
+        ) as Adventure;
+        imported.id = uuidv4(); // give it a fresh id to avoid collisions
+        setCurrentAdventure(imported);
+        setGameState({
+          currentMissionIndex: 0,
+          completedMissions: [],
+          collectedItems: [],
+          score: 0,
+        });
+        safeLsSet("quest_onboarded", "1");
+        window.history.replaceState({}, "", window.location.pathname);
+        setAppState(AppState.NAVIGATION);
+        setIsLoaded(true);
+        return;
+      } catch (e) {
+        console.error("Failed to import deep-link adventure", e);
+      }
+    }
     // Show onboarding on first ever launch
     if (!safeLsGet("quest_onboarded")) {
       setAppState(AppState.ONBOARDING);
@@ -658,7 +683,20 @@ function App() {
             }
           />
         ) : null;
-      case AppState.FINISH:
+      case AppState.FINISH: {
+        const handleShare = async () => {
+          if (!currentAdventure) return;
+          const encoded = btoa(
+            unescape(encodeURIComponent(JSON.stringify(currentAdventure))),
+          );
+          const url = `${window.location.origin}${window.location.pathname}?adventure=${encoded}`;
+          if (navigator.share) {
+            await navigator.share({ title: currentAdventure.name, url });
+          } else {
+            await navigator.clipboard.writeText(url);
+            alert("הקישור הועתק ללוח!");
+          }
+        };
         return (
           <div
             className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-green-500 text-white animate-in zoom-in duration-500"
@@ -669,14 +707,25 @@ function App() {
             <p className="text-2xl md:text-3xl mb-12 font-bold bg-black/10 px-6 py-3 rounded-2xl">
               השלמתם את ההרפתקה בהצלחה!
             </p>
-            <button
-              onClick={resetGame}
-              className="bg-white text-green-600 font-black text-2xl px-12 py-6 rounded-full shadow-xl hover:scale-105 active:scale-95 transition-all w-full max-w-sm"
-            >
-              הרפתקה חדשה
-            </button>
+            <div className="flex flex-col gap-4 w-full max-w-sm">
+              <button
+                type="button"
+                onClick={handleShare}
+                className="bg-white/20 border-2 border-white text-white font-black text-xl px-12 py-5 rounded-full shadow-xl hover:scale-105 active:scale-95 transition-all"
+              >
+                שתף הרפתקה 🔗
+              </button>
+              <button
+                type="button"
+                onClick={resetGame}
+                className="bg-white text-green-600 font-black text-2xl px-12 py-6 rounded-full shadow-xl hover:scale-105 active:scale-95 transition-all"
+              >
+                הרפתקה חדשה
+              </button>
+            </div>
           </div>
         );
+      }
       default:
         return null;
     }
