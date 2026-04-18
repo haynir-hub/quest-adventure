@@ -31,6 +31,7 @@ interface MapViewProps {
   missions: Mission[];
   currentMissionIndex: number;
   onArrived: () => void;
+  onSkip?: () => void;
   currentPosition: { lat: number; lng: number } | null;
   worldId: string;
   gpsError?: string | null;
@@ -51,6 +52,7 @@ export const MapView: React.FC<MapViewProps> = ({
   missions,
   currentMissionIndex,
   onArrived,
+  onSkip,
   currentPosition,
   worldId,
   gpsError,
@@ -58,6 +60,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const nextMission = missions[currentMissionIndex];
   const [hasPlayedSound, setHasPlayedSound] = React.useState(false);
   const [gpsErrorDismissed, setGpsErrorDismissed] = React.useState(false);
+  const [menuOpen, setMenuOpen] = React.useState(false);
   const [deviceHeading, setDeviceHeading] = React.useState<number | null>(null);
 
   const world = worldsData.find((w) => w.id === worldId);
@@ -283,12 +286,24 @@ export const MapView: React.FC<MapViewProps> = ({
       <div className="absolute bottom-6 left-4 right-4 z-[400] pb-[env(safe-area-inset-bottom)] pointer-events-none flex flex-col gap-4">
         {/* Distance and Bearing Info Card */}
         {nextMission && !isArrived && (
-          <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl p-4 shadow-xl border border-slate-200 dark:border-slate-700 pointer-events-auto">
+          <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl p-4 shadow-xl border border-slate-200 dark:border-slate-700 pointer-events-auto relative">
             <div className="flex justify-between items-center">
-              <div className="flex flex-col">
-                <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-1">
-                  משימה {currentMissionIndex + 1}: {nextMission.title}
-                </h2>
+              <div className="flex flex-col flex-1 min-w-0 ml-2">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-1 truncate">
+                    משימה {currentMissionIndex + 1}: {nextMission.title}
+                  </h2>
+                  {onSkip && (
+                    <button
+                      type="button"
+                      onClick={() => setMenuOpen((o) => !o)}
+                      className="text-slate-400 hover:text-slate-600 text-xl leading-none shrink-0 mb-1"
+                      aria-label="אפשרויות"
+                    >
+                      ⋮
+                    </button>
+                  )}
+                </div>
                 {distanceToNext !== null && (
                   <div className="flex items-baseline gap-2">
                     <span className="text-sm text-slate-500 dark:text-slate-400">
@@ -299,10 +314,15 @@ export const MapView: React.FC<MapViewProps> = ({
                     </span>
                   </div>
                 )}
+                {gpsError && (
+                  <span className="inline-flex items-center gap-1 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium mt-1">
+                    📡 מיקום משוער
+                  </span>
+                )}
               </div>
 
               {bearingToNext !== null && (
-                <div className="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-700 rounded-full w-14 h-14 border-2 border-slate-200 dark:border-slate-600 shadow-inner pointer-events-none">
+                <div className="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-700 rounded-full w-14 h-14 border-2 border-slate-200 dark:border-slate-600 shadow-inner pointer-events-none shrink-0">
                   <div
                     style={{
                       transform: `rotate(${(((bearingToNext - (deviceHeading ?? 0)) % 360) + 360) % 360}deg)`,
@@ -314,6 +334,29 @@ export const MapView: React.FC<MapViewProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Skip dropdown menu */}
+            {menuOpen && onSkip && (
+              <div className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onSkip();
+                  }}
+                  className="w-full text-right px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium"
+                >
+                  דלג על משימה זו ⏭
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(false)}
+                  className="w-full text-right px-4 py-3 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 text-sm"
+                >
+                  ביטול
+                </button>
+              </div>
+            )}
           </div>
         )}
 

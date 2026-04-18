@@ -195,6 +195,20 @@ function App() {
     setAppState(AppState.AR_CAMERA);
   };
 
+  const handleSkipMission = () => {
+    if (!gameState || !currentAdventure) return;
+    const isLast =
+      gameState.currentMissionIndex >= currentAdventure.missions.length - 1;
+    if (isLast) {
+      setAppState(AppState.FINISH);
+    } else {
+      setGameState((prev) => {
+        if (!prev) return prev;
+        return { ...prev, currentMissionIndex: prev.currentMissionIndex + 1 };
+      });
+    }
+  };
+
   const handleCatch = () => {
     setAppState(AppState.MISSION);
   };
@@ -592,6 +606,7 @@ function App() {
             missions={currentAdventure.missions}
             currentMissionIndex={gameState.currentMissionIndex}
             onArrived={handleArrived}
+            onSkip={handleSkipMission}
             currentPosition={currentPosition}
             worldId={currentAdventure.worldId}
             gpsError={gpsError}
