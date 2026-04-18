@@ -265,7 +265,7 @@ function App() {
   const handleShareAdventure = (e: React.MouseEvent, adventure: Adventure) => {
     e.stopPropagation();
     const jsonString = JSON.stringify(adventure);
-    const encodedStr = btoa(encodeURIComponent(jsonString));
+    const encodedStr = btoa(unescape(encodeURIComponent(jsonString)));
 
     // Copy to clipboard
     if (navigator.clipboard) {
