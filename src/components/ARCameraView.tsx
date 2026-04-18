@@ -89,16 +89,23 @@ export const ARCameraView: React.FC<ARCameraViewProps> = ({
 
   // Handle the case where the camera is denied or broken
   if (hasPermission === false) {
+    const bgColor = world?.primaryColor || "#3B82F6";
+    const catchEmoji = theme?.catchItemEmoji || displayEmoji;
     return (
       <div
         className="flex flex-col items-center justify-center min-h-screen p-6 text-center animate-in fade-in"
+        style={{ backgroundColor: bgColor }}
         dir="rtl"
       >
-        <div className="text-6xl mb-6">📷❌</div>
-        <h2 className="text-3xl font-bold mb-4">{error}</h2>
+        <div className="text-8xl mb-6 drop-shadow-lg">{catchEmoji}</div>
+        <h2 className="text-2xl font-bold mb-2 text-white drop-shadow">
+          {error}
+        </h2>
+        <p className="text-white/80 mb-8 text-lg">אפשר להמשיך גם בלי מצלמה</p>
         <button
+          type="button"
           onClick={onCatch}
-          className="bg-blue-500 text-white font-bold py-4 px-8 rounded-full shadow-lg text-2xl w-full"
+          className="bg-white text-slate-800 font-bold py-4 px-8 rounded-full shadow-lg text-2xl w-full"
         >
           המשך למשימה
         </button>

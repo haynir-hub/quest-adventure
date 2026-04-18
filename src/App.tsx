@@ -1,30 +1,30 @@
-import { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import WorldSelector from './components/WorldSelector';
-import AdventureCreator from './components/AdventureCreator';
-import { MapView } from './components/MapView';
-import MissionScreen from './components/MissionScreen';
-import { RewardScreen } from './components/RewardScreen';
-import { ARCameraView } from './components/ARCameraView';
-import { useNavigation } from './hooks/useNavigation';
-import type { GameState, Adventure, Mission } from './types';
-import { worldsData } from './worlds/worldsData';
-import { worldThemes } from './worlds/worldThemes';
-import { useRegisterSW } from 'virtual:pwa-register/react';
+import { useState, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
+import WorldSelector from "./components/WorldSelector";
+import AdventureCreator from "./components/AdventureCreator";
+import { MapView } from "./components/MapView";
+import MissionScreen from "./components/MissionScreen";
+import { RewardScreen } from "./components/RewardScreen";
+import { ARCameraView } from "./components/ARCameraView";
+import { useNavigation } from "./hooks/useNavigation";
+import type { GameState, Adventure, Mission } from "./types";
+import { worldsData } from "./worlds/worldsData";
+import { worldThemes } from "./worlds/worldThemes";
+import { useRegisterSW } from "virtual:pwa-register/react";
 
 const AppState = {
-  HOME: 'HOME',
-  WORLD_MENU: 'WORLD_MENU',
-  GAME_LIBRARY: 'GAME_LIBRARY',
-  CREATOR: 'CREATOR',
-  NAVIGATION: 'NAVIGATION',
-  AR_CAMERA: 'AR_CAMERA',
-  MISSION: 'MISSION',
-  REWARD: 'REWARD',
-  FINISH: 'FINISH'
+  HOME: "HOME",
+  WORLD_MENU: "WORLD_MENU",
+  GAME_LIBRARY: "GAME_LIBRARY",
+  CREATOR: "CREATOR",
+  NAVIGATION: "NAVIGATION",
+  AR_CAMERA: "AR_CAMERA",
+  MISSION: "MISSION",
+  REWARD: "REWARD",
+  FINISH: "FINISH",
 } as const;
 
-type AppState = typeof AppState[keyof typeof AppState];
+type AppState = (typeof AppState)[keyof typeof AppState];
 
 function App() {
   const {
@@ -32,16 +32,18 @@ function App() {
     updateServiceWorker,
   } = useRegisterSW({
     onRegistered(r: any) {
-      console.log('SW Registered: ', r);
+      console.log("SW Registered: ", r);
     },
     onRegisterError(error: any) {
-      console.log('SW registration error', error);
+      console.log("SW registration error", error);
     },
   });
 
   const [appState, setAppState] = useState<AppState>(AppState.HOME);
   const [gameState, setGameState] = useState<GameState | null>(null);
-  const [currentAdventure, setCurrentAdventure] = useState<Adventure | null>(null);
+  const [currentAdventure, setCurrentAdventure] = useState<Adventure | null>(
+    null,
+  );
   const [isLoaded, setIsLoaded] = useState(false);
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null);
   const [adventuresCountOnOpen, setAdventuresCountOnOpen] = useState(0);
@@ -59,10 +61,13 @@ function App() {
       setIsInstallable(true);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
     };
   }, []);
 
@@ -70,20 +75,20 @@ function App() {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
+    if (outcome === "accepted") {
       setIsInstallable(false);
     }
     setDeferredPrompt(null);
   };
 
-  const { currentPosition, startNavigation } = useNavigation();
+  const { currentPosition, startNavigation, gpsError } = useNavigation();
 
   // Load state on mount
   useEffect(() => {
     try {
-      const savedState = localStorage.getItem('quest_appState');
-      const savedGame = localStorage.getItem('quest_gameState');
-      const savedAdv = localStorage.getItem('quest_currentAdventure');
+      const savedState = localStorage.getItem("quest_appState");
+      const savedGame = localStorage.getItem("quest_gameState");
+      const savedAdv = localStorage.getItem("quest_currentAdventure");
 
       if (savedState && savedGame && savedAdv) {
         setAppState(savedState as AppState);
@@ -99,9 +104,14 @@ function App() {
   // Save state on change
   useEffect(() => {
     if (!isLoaded) return;
-    localStorage.setItem('quest_appState', appState);
-    if (gameState) localStorage.setItem('quest_gameState', JSON.stringify(gameState));
-    if (currentAdventure) localStorage.setItem('quest_currentAdventure', JSON.stringify(currentAdventure));
+    localStorage.setItem("quest_appState", appState);
+    if (gameState)
+      localStorage.setItem("quest_gameState", JSON.stringify(gameState));
+    if (currentAdventure)
+      localStorage.setItem(
+        "quest_currentAdventure",
+        JSON.stringify(currentAdventure),
+      );
   }, [appState, gameState, currentAdventure, isLoaded]);
 
   const handleWorldSelect = (worldId: string) => {
@@ -117,11 +127,9 @@ function App() {
   const handleStartAdventure = (selectedAdv?: Adventure) => {
     const startPos = currentPosition || { lat: 32.0853, lng: 34.7818 }; // Default to Tel Aviv if no GPS yet
 
-
-
     // If no custom adventure, generate default one
     if (!selectedAdv) {
-      const world = worldsData.find(w => w.id === selectedWorldId)!;
+      const world = worldsData.find((w) => w.id === selectedWorldId)!;
       const missions: Mission[] = world.missions.map((m, index) => ({
         id: m.id,
         lat: startPos.lat + (index + 1) * 0.0003, // Small offset for generated markers
@@ -132,7 +140,7 @@ function App() {
         missionType: m.missionType as any,
         amount: m.amount,
         emoji: m.emoji,
-        imageUrl: m.imageUrl
+        imageUrl: m.imageUrl,
       }));
 
       selectedAdv = {
@@ -140,7 +148,7 @@ function App() {
         name: `ההרפתקה של ${world.name}`,
         worldId: world.id,
         createdAt: Date.now(),
-        missions
+        missions,
       };
     }
 
@@ -148,7 +156,7 @@ function App() {
     setGameState({
       adventureId: selectedAdv.id,
       currentMissionIndex: 0,
-      completedMissions: []
+      completedMissions: [],
     });
     setAppState(AppState.NAVIGATION);
   };
@@ -163,13 +171,17 @@ function App() {
 
   const handleDeleteAdventure = (e: React.MouseEvent, adventureId: string) => {
     e.stopPropagation();
-    if (window.confirm('האם אתם בטוחים שברצונכם למחוק הרפתקה זו?')) {
+    if (window.confirm("האם אתם בטוחים שברצונכם למחוק הרפתקה זו?")) {
       try {
-        const customAdventuresStr = localStorage.getItem('adventures');
+        const customAdventuresStr = localStorage.getItem("adventures");
         if (customAdventuresStr) {
-          const customAdventures = JSON.parse(customAdventuresStr) as Adventure[];
-          const updatedAdventures = customAdventures.filter(a => a.id !== adventureId);
-          localStorage.setItem('adventures', JSON.stringify(updatedAdventures));
+          const customAdventures = JSON.parse(
+            customAdventuresStr,
+          ) as Adventure[];
+          const updatedAdventures = customAdventures.filter(
+            (a) => a.id !== adventureId,
+          );
+          localStorage.setItem("adventures", JSON.stringify(updatedAdventures));
           // Force a re-render of the GAME_LIBRARY by temporarily setting state
           setAppState(AppState.HOME);
           setTimeout(() => setAppState(AppState.GAME_LIBRARY), 0);
@@ -187,13 +199,18 @@ function App() {
 
     // Copy to clipboard
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(encodedStr).then(() => {
-        alert('קוד ההרפתקה הועתק בהצלחה!\n\nשלחו את הקוד לטלפון שלכם (למשל בוואטסאפ) והדביקו אותו בכפתור "ייבוא משחק מהמחשב".');
-      }).catch(() => {
-        window.prompt('העתק את הקוד הבא:', encodedStr);
-      });
+      navigator.clipboard
+        .writeText(encodedStr)
+        .then(() => {
+          alert(
+            'קוד ההרפתקה הועתק בהצלחה!\n\nשלחו את הקוד לטלפון שלכם (למשל בוואטסאפ) והדביקו אותו בכפתור "ייבוא משחק מהמחשב".',
+          );
+        })
+        .catch(() => {
+          window.prompt("העתק את הקוד הבא:", encodedStr);
+        });
     } else {
-      window.prompt('העתק את הקוד הבא:', encodedStr);
+      window.prompt("העתק את הקוד הבא:", encodedStr);
     }
   };
 
@@ -204,17 +221,21 @@ function App() {
   const handleRewardContinue = () => {
     if (!gameState || !currentAdventure) return;
 
-    const isLast = gameState.currentMissionIndex >= currentAdventure.missions.length - 1;
+    const isLast =
+      gameState.currentMissionIndex >= currentAdventure.missions.length - 1;
 
     if (isLast) {
       setAppState(AppState.FINISH);
     } else {
-      setGameState(prev => {
+      setGameState((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
           currentMissionIndex: prev.currentMissionIndex + 1,
-          completedMissions: [...prev.completedMissions, currentAdventure.missions[prev.currentMissionIndex].id]
+          completedMissions: [
+            ...prev.completedMissions,
+            currentAdventure.missions[prev.currentMissionIndex].id,
+          ],
         };
       });
       setAppState(AppState.NAVIGATION);
@@ -225,9 +246,9 @@ function App() {
     setAppState(AppState.HOME);
     setGameState(null);
     setCurrentAdventure(null);
-    localStorage.removeItem('quest_appState');
-    localStorage.removeItem('quest_gameState');
-    localStorage.removeItem('quest_currentAdventure');
+    localStorage.removeItem("quest_appState");
+    localStorage.removeItem("quest_gameState");
+    localStorage.removeItem("quest_currentAdventure");
   };
 
   useEffect(() => {
@@ -273,7 +294,7 @@ function App() {
 
   const handleCreatorClose = () => {
     try {
-      const customAdventuresStr = localStorage.getItem('adventures');
+      const customAdventuresStr = localStorage.getItem("adventures");
       if (customAdventuresStr) {
         const customAdventures = JSON.parse(customAdventuresStr) as Adventure[];
         if (customAdventures.length > adventuresCountOnOpen) {
@@ -282,7 +303,7 @@ function App() {
           setGameState({
             adventureId: newAdv.id,
             currentMissionIndex: 0,
-            completedMissions: []
+            completedMissions: [],
           });
           setAppState(AppState.NAVIGATION);
           return;
@@ -305,11 +326,16 @@ function App() {
           </div>
         );
       case AppState.WORLD_MENU: {
-        const worldName = worldsData.find(w => w.id === selectedWorldId)?.name || 'עולם';
+        const worldName =
+          worldsData.find((w) => w.id === selectedWorldId)?.name || "עולם";
         return (
-          <div className="flex flex-col items-center justify-center p-4 min-h-screen animate-in fade-in zoom-in duration-300" dir="rtl">
+          <div
+            className="flex flex-col items-center justify-center p-4 min-h-screen animate-in fade-in zoom-in duration-300"
+            dir="rtl"
+          >
             <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-12 max-w-md text-center drop-shadow-sm leading-tight">
-              מה תרצו לעשות<br />ב<span className="text-blue-600">{worldName}</span>?
+              מה תרצו לעשות
+              <br />ב<span className="text-blue-600">{worldName}</span>?
             </h2>
             <div className="flex flex-col gap-6 w-full max-w-sm">
               <button
@@ -321,8 +347,10 @@ function App() {
               </button>
               <button
                 onClick={() => {
-                  const adventuresStr = localStorage.getItem('adventures');
-                  const currentCount = adventuresStr ? JSON.parse(adventuresStr).length : 0;
+                  const adventuresStr = localStorage.getItem("adventures");
+                  const currentCount = adventuresStr
+                    ? JSON.parse(adventuresStr).length
+                    : 0;
                   setAdventuresCountOnOpen(currentCount);
                   setAppState(AppState.CREATOR);
                 }}
@@ -333,29 +361,40 @@ function App() {
               </button>
               <button
                 onClick={() => {
-                  const code = window.prompt('הדביקו כאן את הקוד שהעתקתם מהמחשב (Share Code):');
+                  const code = window.prompt(
+                    "הדביקו כאן את הקוד שהעתקתם מהמחשב (Share Code):",
+                  );
                   if (code) {
                     try {
                       const jsonString = decodeURIComponent(atob(code.trim()));
                       const adventure = JSON.parse(jsonString) as Adventure;
-                      if (adventure && adventure.id && adventure.name && adventure.worldId && adventure.missions) {
+                      if (
+                        adventure &&
+                        adventure.id &&
+                        adventure.name &&
+                        adventure.worldId &&
+                        adventure.missions
+                      ) {
                         const importedAdventure = {
                           ...adventure,
                           id: Math.random().toString(36).substr(2, 9),
-                          createdAt: Date.now()
+                          createdAt: Date.now(),
                         };
-                        const existing = localStorage.getItem('adventures');
+                        const existing = localStorage.getItem("adventures");
                         const adventures = existing ? JSON.parse(existing) : [];
                         adventures.push(importedAdventure);
-                        localStorage.setItem('adventures', JSON.stringify(adventures));
-                        alert('ההרפתקה יובאה בהצלחה!');
+                        localStorage.setItem(
+                          "adventures",
+                          JSON.stringify(adventures),
+                        );
+                        alert("ההרפתקה יובאה בהצלחה!");
                         setSelectedWorldId(adventure.worldId);
                         setAppState(AppState.GAME_LIBRARY);
                       } else {
-                        alert('קוד לא חוקי.');
+                        alert("קוד לא חוקי.");
                       }
                     } catch (err) {
-                      alert('שגיאה בייבוא - האם העתקתם נכון את כל הקוד?');
+                      alert("שגיאה בייבוא - האם העתקתם נכון את כל הקוד?");
                     }
                   }
                 }}
@@ -369,28 +408,49 @@ function App() {
         );
       }
       case AppState.GAME_LIBRARY: {
-        const worldName = worldsData.find(w => w.id === selectedWorldId)?.name || 'עולם';
-        const worldEmoji = worldsData.find(w => w.id === selectedWorldId)?.emoji || '🌍';
-        const primaryColor = worldsData.find(w => w.id === selectedWorldId)?.primaryColor || '#3B82F6';
+        const worldName =
+          worldsData.find((w) => w.id === selectedWorldId)?.name || "עולם";
+        const worldEmoji =
+          worldsData.find((w) => w.id === selectedWorldId)?.emoji || "🌍";
+        const primaryColor =
+          worldsData.find((w) => w.id === selectedWorldId)?.primaryColor ||
+          "#3B82F6";
         let worldAdventures: Adventure[] = [];
         try {
-          const customAdventuresStr = localStorage.getItem('adventures');
+          const customAdventuresStr = localStorage.getItem("adventures");
           if (customAdventuresStr) {
-            const customAdventures = JSON.parse(customAdventuresStr) as Adventure[];
-            worldAdventures = customAdventures.filter(a => a.worldId === selectedWorldId && a.missions && a.missions.length > 0);
+            const customAdventures = JSON.parse(
+              customAdventuresStr,
+            ) as Adventure[];
+            worldAdventures = customAdventures.filter(
+              (a) =>
+                a.worldId === selectedWorldId &&
+                a.missions &&
+                a.missions.length > 0,
+            );
           }
         } catch (e) {
           console.error("Failed to parse custom adventures", e);
         }
 
         return (
-          <div className="flex flex-col items-center p-6 min-h-screen animate-in fade-in zoom-in duration-300" dir="rtl">
+          <div
+            className="flex flex-col items-center p-6 min-h-screen animate-in fade-in zoom-in duration-300"
+            dir="rtl"
+          >
             <div className="w-full max-w-lg mb-8 text-center pt-12">
-              <div className="text-6xl mb-4" style={{ filter: 'drop-shadow(0px 10px 10px rgba(0,0,0,0.1))' }}>{worldEmoji}</div>
+              <div
+                className="text-6xl mb-4"
+                style={{ filter: "drop-shadow(0px 10px 10px rgba(0,0,0,0.1))" }}
+              >
+                {worldEmoji}
+              </div>
               <h2 className="text-3xl md:text-4xl font-black text-slate-800 leading-tight">
                 ספריית המשחקים של {worldName}
               </h2>
-              <p className="text-slate-500 mt-2 font-medium">בחרו הרפתקה כדי להתחיל לשחק!</p>
+              <p className="text-slate-500 mt-2 font-medium">
+                בחרו הרפתקה כדי להתחיל לשחק!
+              </p>
             </div>
 
             <div className="w-full max-w-lg space-y-4">
@@ -400,10 +460,17 @@ function App() {
                 className="w-full bg-white rounded-3xl p-6 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all flex items-center justify-between border-2 border-slate-100 group text-right"
               >
                 <div>
-                  <h3 className="text-2xl font-bold text-slate-800 mb-1">הרפתקה רגילה מיוצרת מראש</h3>
-                  <p className="text-slate-500 font-medium text-sm">הרפתקה קלאסית עם 5 משימות סביבכם</p>
+                  <h3 className="text-2xl font-bold text-slate-800 mb-1">
+                    הרפתקה רגילה מיוצרת מראש
+                  </h3>
+                  <p className="text-slate-500 font-medium text-sm">
+                    הרפתקה קלאסית עם 5 משימות סביבכם
+                  </p>
                 </div>
-                <div className="w-12 h-12 rounded-full flex items-center justify-center text-white transform group-hover:scale-110 transition-transform shadow-inner" style={{ backgroundColor: primaryColor }}>
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-white transform group-hover:scale-110 transition-transform shadow-inner"
+                  style={{ backgroundColor: primaryColor }}
+                >
                   <span className="text-xl">▶</span>
                 </div>
               </button>
@@ -411,41 +478,52 @@ function App() {
               {/* Custom Adventures */}
               {worldAdventures.length > 0 && (
                 <div className="mt-8 pt-8 border-t-2 border-slate-200">
-                  <h3 className="text-xl font-bold text-slate-400 mb-4 px-2">ההרפתקאות שיצרתם:</h3>
+                  <h3 className="text-xl font-bold text-slate-400 mb-4 px-2">
+                    ההרפתקאות שיצרתם:
+                  </h3>
                   <div className="space-y-4">
-                    {worldAdventures.slice().reverse().map((adv) => (
-                      <div key={adv.id} className="relative group">
-                        <button
-                          onClick={() => handleStartAdventure(adv)}
-                          className="w-full bg-slate-800 text-white rounded-3xl p-6 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center justify-between text-right"
-                        >
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="bg-white/20 text-xs px-2 py-1 rounded-md font-bold">נוצר על ידכם</span>
-                              <h3 className="text-2xl font-bold text-white leading-tight">{adv.name}</h3>
+                    {worldAdventures
+                      .slice()
+                      .reverse()
+                      .map((adv) => (
+                        <div key={adv.id} className="relative group">
+                          <button
+                            onClick={() => handleStartAdventure(adv)}
+                            className="w-full bg-slate-800 text-white rounded-3xl p-6 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center justify-between text-right"
+                          >
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="bg-white/20 text-xs px-2 py-1 rounded-md font-bold">
+                                  נוצר על ידכם
+                                </span>
+                                <h3 className="text-2xl font-bold text-white leading-tight">
+                                  {adv.name}
+                                </h3>
+                              </div>
+                              <p className="text-slate-300 font-medium text-sm mt-1">
+                                {adv.missions.length} משימות בסיפור
+                              </p>
                             </div>
-                            <p className="text-slate-300 font-medium text-sm mt-1">{adv.missions.length} משימות בסיפור</p>
-                          </div>
-                          <div className="w-12 h-12 rounded-full flex items-center justify-center text-slate-800 bg-white transform group-hover:scale-110 transition-transform shadow-inner">
-                            <span className="text-xl">▶</span>
-                          </div>
-                        </button>
-                        <button
-                          onClick={(e) => handleDeleteAdventure(e, adv.id)}
-                          className="absolute top-0 left-0 m-4 w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 hover:scale-110"
-                          aria-label="מחק הרפתקה"
-                        >
-                          <span className="text-xl">🗑️</span>
-                        </button>
-                        <button
-                          onClick={(e) => handleShareAdventure(e, adv)}
-                          className="absolute top-0 left-16 m-4 w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-xl shadow-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 hover:scale-110"
-                          aria-label="שתף הרפתקה"
-                        >
-                          <span className="text-xl">🔗</span>
-                        </button>
-                      </div>
-                    ))}
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-slate-800 bg-white transform group-hover:scale-110 transition-transform shadow-inner">
+                              <span className="text-xl">▶</span>
+                            </div>
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteAdventure(e, adv.id)}
+                            className="absolute top-0 left-0 m-4 w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 hover:scale-110"
+                            aria-label="מחק הרפתקה"
+                          >
+                            <span className="text-xl">🗑️</span>
+                          </button>
+                          <button
+                            onClick={(e) => handleShareAdventure(e, adv)}
+                            className="absolute top-0 left-16 m-4 w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-xl shadow-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 hover:scale-110"
+                            aria-label="שתף הרפתקה"
+                          >
+                            <span className="text-xl">🔗</span>
+                          </button>
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}
@@ -453,8 +531,10 @@ function App() {
               {/* Create New Shortcut */}
               <button
                 onClick={() => {
-                  const adventuresStr = localStorage.getItem('adventures');
-                  const currentCount = adventuresStr ? JSON.parse(adventuresStr).length : 0;
+                  const adventuresStr = localStorage.getItem("adventures");
+                  const currentCount = adventuresStr
+                    ? JSON.parse(adventuresStr).length
+                    : 0;
                   setAdventuresCountOnOpen(currentCount);
                   setAppState(AppState.CREATOR);
                 }}
@@ -477,12 +557,16 @@ function App() {
             onArrived={handleArrived}
             currentPosition={currentPosition}
             worldId={currentAdventure.worldId}
+            gpsError={gpsError}
           />
         ) : (
-          <div className="flex flex-col items-center justify-center min-h-screen">טוען נתוני הרפתקה...</div>
+          <div className="flex flex-col items-center justify-center min-h-screen">
+            טוען נתוני הרפתקה...
+          </div>
         );
       case AppState.AR_CAMERA: {
-        const mission = currentAdventure?.missions[gameState?.currentMissionIndex || 0];
+        const mission =
+          currentAdventure?.missions[gameState?.currentMissionIndex || 0];
         return mission && currentAdventure ? (
           <ARCameraView
             mission={mission}
@@ -492,8 +576,12 @@ function App() {
         ) : null;
       }
       case AppState.MISSION: {
-        const mission = currentAdventure?.missions[gameState?.currentMissionIndex || 0];
-        const themeKey = currentAdventure?.worldId === 'treasure' ? 'treasures' : currentAdventure?.worldId || 'mario';
+        const mission =
+          currentAdventure?.missions[gameState?.currentMissionIndex || 0];
+        const themeKey =
+          currentAdventure?.worldId === "treasure"
+            ? "treasures"
+            : currentAdventure?.worldId || "mario";
         const theme = worldThemes[themeKey] || Object.values(worldThemes)[0];
 
         return mission && currentAdventure ? (
@@ -512,15 +600,23 @@ function App() {
             missionIndex={gameState.currentMissionIndex}
             totalMissions={currentAdventure.missions.length}
             onContinue={handleRewardContinue}
-            isLastMission={gameState.currentMissionIndex >= currentAdventure.missions.length - 1}
+            isLastMission={
+              gameState.currentMissionIndex >=
+              currentAdventure.missions.length - 1
+            }
           />
         ) : null;
       case AppState.FINISH:
         return (
-          <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-green-500 text-white animate-in zoom-in duration-500" dir="rtl">
+          <div
+            className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-green-500 text-white animate-in zoom-in duration-500"
+            dir="rtl"
+          >
             <div className="text-9xl mb-8 drop-shadow-2xl">🏆</div>
             <h1 className="text-5xl md:text-6xl font-black mb-6">כל הכבוד!</h1>
-            <p className="text-2xl md:text-3xl mb-12 font-bold bg-black/10 px-6 py-3 rounded-2xl">השלמתם את ההרפתקה בהצלחה!</p>
+            <p className="text-2xl md:text-3xl mb-12 font-bold bg-black/10 px-6 py-3 rounded-2xl">
+              השלמתם את ההרפתקה בהצלחה!
+            </p>
             <button
               onClick={resetGame}
               className="bg-white text-green-600 font-black text-2xl px-12 py-6 rounded-full shadow-xl hover:scale-105 active:scale-95 transition-all w-full max-w-sm"
@@ -540,7 +636,10 @@ function App() {
 
       {/* PWA Update Prompt */}
       {needRefresh && (
-        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-4 rounded-2xl shadow-2xl z-[100] flex flex-col items-center justify-center gap-3 w-max max-w-[90vw] animate-in slide-in-from-bottom-10" dir="rtl">
+        <div
+          className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-4 rounded-2xl shadow-2xl z-[100] flex flex-col items-center justify-center gap-3 w-max max-w-[90vw] animate-in slide-in-from-bottom-10"
+          dir="rtl"
+        >
           <span className="font-bold">גרסה חדשה של המשחק זמינה! 🎉</span>
           <button
             onClick={() => updateServiceWorker(true)}
@@ -558,35 +657,44 @@ function App() {
           className="fixed top-6 left-6 bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg z-[100] flex items-center justify-center hover:bg-blue-700 active:scale-95 transition-all text-lg font-bold border-2 border-white min-h-[48px]"
           dir="rtl"
         >
-          <span className="ml-2 text-2xl" role="img" aria-label="mobile">📱</span> הוסף למסך הבית
+          <span className="ml-2 text-2xl" role="img" aria-label="mobile">
+            📱
+          </span>{" "}
+          הוסף למסך הבית
         </button>
       )}
 
       {/* Global Back Button (RTL top right) */}
-      {appState !== AppState.HOME && appState !== AppState.FINISH && appState !== AppState.CREATOR && (
-        <button
-          onClick={handleBack}
-          className="fixed top-6 right-6 bg-white/90 backdrop-blur-md text-slate-800 px-4 py-2 rounded-full shadow-lg z-[100] flex items-center justify-center hover:bg-white active:scale-95 transition-all text-lg font-bold border-2 border-slate-200/50"
-          aria-label="חזרה"
-          dir="rtl"
-        >
-          <span className="mr-2">&rarr;</span> חזרה
-        </button>
-      )}
+      {appState !== AppState.HOME &&
+        appState !== AppState.FINISH &&
+        appState !== AppState.CREATOR && (
+          <button
+            onClick={handleBack}
+            className="fixed top-6 right-6 bg-white/90 backdrop-blur-md text-slate-800 px-4 py-2 rounded-full shadow-lg z-[100] flex items-center justify-center hover:bg-white active:scale-95 transition-all text-lg font-bold border-2 border-slate-200/50"
+            aria-label="חזרה"
+            dir="rtl"
+          >
+            <span className="mr-2">&rarr;</span> חזרה
+          </button>
+        )}
 
       {/* Floating Action Button for Trainer (Only on HOME page) */}
       {appState === AppState.HOME && (
         <button
           onClick={() => {
-            const adventuresStr = localStorage.getItem('adventures');
-            const currentCount = adventuresStr ? JSON.parse(adventuresStr).length : 0;
+            const adventuresStr = localStorage.getItem("adventures");
+            const currentCount = adventuresStr
+              ? JSON.parse(adventuresStr).length
+              : 0;
             setAdventuresCountOnOpen(currentCount);
             setAppState(AppState.CREATOR);
           }}
           className="fixed bottom-6 right-6 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all z-[100] flex items-center justify-center min-w-[64px] min-h-[64px] select-none touch-manipulation border-2 border-white focus:outline-none focus:ring-4 focus:ring-indigo-300"
           aria-label="פתח פאנל מאמן"
         >
-          <span className="text-3xl" role="img" aria-label="tools">🛠️</span>
+          <span className="text-3xl" role="img" aria-label="tools">
+            🛠️
+          </span>
         </button>
       )}
     </div>
