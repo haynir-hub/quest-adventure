@@ -11,8 +11,10 @@ import type { GameState, Adventure, Mission } from "./types";
 import { worldsData } from "./worlds/worldsData";
 import { worldThemes } from "./worlds/worldThemes";
 import { useRegisterSW } from "virtual:pwa-register/react";
+import { OnboardingScreen } from "./components/OnboardingScreen";
 
 const AppState = {
+  ONBOARDING: "ONBOARDING",
   HOME: "HOME",
   WORLD_MENU: "WORLD_MENU",
   GAME_LIBRARY: "GAME_LIBRARY",
@@ -101,6 +103,12 @@ function App() {
 
   // Load state on mount — per-key try/catch so one corrupt entry doesn't block others
   useEffect(() => {
+    // Show onboarding on first ever launch
+    if (!safeLsGet("quest_onboarded")) {
+      setAppState(AppState.ONBOARDING);
+      setIsLoaded(true);
+      return;
+    }
     let corrupted = false;
     const savedState = safeLsGet("quest_appState");
     try {
@@ -339,8 +347,15 @@ function App() {
 
   if (!isLoaded) return <div className="min-h-screen bg-slate-50"></div>;
 
+  const handleOnboardingDone = () => {
+    safeLsSet("quest_onboarded", "1");
+    setAppState(AppState.HOME);
+  };
+
   const renderScreen = () => {
     switch (appState) {
+      case AppState.ONBOARDING:
+        return <OnboardingScreen onDone={handleOnboardingDone} />;
       case AppState.HOME:
         return (
           <div className="flex items-center justify-center p-4 min-h-screen">
@@ -699,16 +714,17 @@ function App() {
         </div>
       )}
 
-      {/* PWA Install Button (LTR top left) */}
-      {isInstallable && appState === AppState.HOME && (
+      {/* PWA Install Button — persistent floating, hidden only on onboarding */}
+      {isInstallable && appState !== AppState.ONBOARDING && (
         <button
+          type="button"
           onClick={handleInstallClick}
-          className="fixed top-6 left-6 bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg z-[100] flex items-center justify-center hover:bg-blue-700 active:scale-95 transition-all text-lg font-bold border-2 border-white min-h-[48px]"
+          className="fixed bottom-28 left-4 bg-blue-600 text-white px-4 py-3 rounded-full shadow-lg z-[100] flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition-all text-base font-bold border-2 border-white min-h-[48px]"
           dir="rtl"
         >
-          <span className="ml-2 text-2xl" role="img" aria-label="mobile">
+          <span className="text-xl" role="img" aria-label="mobile">
             📱
-          </span>{" "}
+          </span>
           הוסף למסך הבית
         </button>
       )}
