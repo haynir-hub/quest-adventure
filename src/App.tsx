@@ -45,6 +45,7 @@ function App() {
     null,
   );
   const [isLoaded, setIsLoaded] = useState(false);
+  const [storageError, setStorageError] = useState(false);
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null);
   const [adventuresCountOnOpen, setAdventuresCountOnOpen] = useState(0);
 
@@ -83,35 +84,56 @@ function App() {
 
   const { currentPosition, startNavigation, gpsError } = useNavigation();
 
-  // Load state on mount
-  useEffect(() => {
+  const safeLsGet = (key: string) => {
     try {
-      const savedState = localStorage.getItem("quest_appState");
-      const savedGame = localStorage.getItem("quest_gameState");
-      const savedAdv = localStorage.getItem("quest_currentAdventure");
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  };
+  const safeLsSet = (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn("localStorage write failed", key, e);
+    }
+  };
 
+  // Load state on mount — per-key try/catch so one corrupt entry doesn't block others
+  useEffect(() => {
+    let corrupted = false;
+    const savedState = safeLsGet("quest_appState");
+    try {
+      const savedGame = safeLsGet("quest_gameState");
+      const savedAdv = safeLsGet("quest_currentAdventure");
       if (savedState && savedGame && savedAdv) {
         setAppState(savedState as AppState);
         setGameState(JSON.parse(savedGame));
         setCurrentAdventure(JSON.parse(savedAdv));
       }
     } catch (e) {
-      console.error("Error loading saved state", e);
+      console.error("Corrupt localStorage — clearing", e);
+      corrupted = true;
+      ["quest_appState", "quest_gameState", "quest_currentAdventure"].forEach(
+        (k) => {
+          try {
+            localStorage.removeItem(k);
+          } catch {}
+        },
+      );
+      setStorageError(true);
     }
-    setIsLoaded(true);
+    if (!corrupted) setIsLoaded(true);
+    else setIsLoaded(true);
   }, []);
 
   // Save state on change
   useEffect(() => {
     if (!isLoaded) return;
-    localStorage.setItem("quest_appState", appState);
-    if (gameState)
-      localStorage.setItem("quest_gameState", JSON.stringify(gameState));
+    safeLsSet("quest_appState", appState);
+    if (gameState) safeLsSet("quest_gameState", JSON.stringify(gameState));
     if (currentAdventure)
-      localStorage.setItem(
-        "quest_currentAdventure",
-        JSON.stringify(currentAdventure),
-      );
+      safeLsSet("quest_currentAdventure", JSON.stringify(currentAdventure));
   }, [appState, gameState, currentAdventure, isLoaded]);
 
   const handleWorldSelect = (worldId: string) => {
@@ -629,6 +651,33 @@ function App() {
         return null;
     }
   };
+
+  if (storageError) {
+    return (
+      <div
+        className="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-slate-50"
+        dir="rtl"
+      >
+        <div className="text-6xl mb-6">⚠️</div>
+        <h2 className="text-2xl font-bold mb-3 text-slate-800">
+          נתוני המשחק פגומים
+        </h2>
+        <p className="text-slate-600 mb-8">
+          נמצא קובץ שמירה פגום ונמחק. לחץ להתחיל מחדש.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setStorageError(false);
+            setAppState(AppState.HOME);
+          }}
+          className="bg-blue-500 text-white font-bold py-4 px-8 rounded-full shadow-lg text-xl w-full max-w-xs"
+        >
+          התחל מחדש
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 relative pb-20">
