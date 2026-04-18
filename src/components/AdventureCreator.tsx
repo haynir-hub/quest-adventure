@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
   MapContainer,
@@ -9,17 +9,13 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { Mission, Adventure } from "../types";
+import QRCode from "qrcode";
+import type { Mission, Adventure } from "../types/index";
 import WorldSelector from "./WorldSelector";
 import { worldThemes } from "../worlds/worldThemes";
+import { buildShareUrl } from "../utils/share";
 
-type Step = 1 | 2 | 3;
-
-interface AdventureCreatorProps {
-  onClose: () => void;
-}
-
-// Fix for default marker icon in react-leaflet
+// Fix default marker icons (Leaflet + Vite issue)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -31,8 +27,11 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-// Component to handle map clicks
-const MapEvents = ({
+interface AdventureCreatorProps {
+  onClose: () => void;
+}
+
+const MapClickHandler = ({
   onMapClick,
 }: {
   onMapClick: (lat: number, lng: number) => void;
@@ -45,512 +44,457 @@ const MapEvents = ({
   return null;
 };
 
-// Component to re-center map
-const ChangeView = ({ center }: { center: [number, number] | null }) => {
+const FlyToUser = ({ center }: { center: [number, number] | null }) => {
   const map = useMap();
-  React.useEffect(() => {
-    if (center) {
-      map.setView(center, map.getZoom());
+  const didFly = useRef(false);
+  useEffect(() => {
+    if (center && !didFly.current) {
+      didFly.current = true;
+      map.setView(center, 16);
     }
   }, [center, map]);
   return null;
 };
 
-// Force Leaflet to recalculate container size on mount (fixes grey tiles after transition)
-const InvalidateSizeComponent = () => {
+const InvalidateSize = () => {
   const map = useMap();
-  React.useEffect(() => {
-    // Fire repeatedly to account for the 500ms CSS slide-in animation
-    const timeouts = [100, 400, 700, 1200].map((delay) =>
-      setTimeout(() => {
-        map.invalidateSize();
-        window.dispatchEvent(new Event("resize"));
-      }, delay),
-    );
-    return () => timeouts.forEach(clearTimeout);
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 200);
+    return () => clearTimeout(t);
   }, [map]);
   return null;
 };
 
+const createNumberedIcon = (n: number) =>
+  L.divIcon({
+    className: "",
+    html: `<div style="width:32px;height:32px;background:#3b82f6;color:#fff;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;box-shadow:0 2px 8px rgba(59,130,246,.5)">${n}</div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
+
 const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
-  const [step, setStep] = useState<Step>(1);
-  const [mapHintDismissed, setMapHintDismissed] = useState(false);
-
-  // Step 1 State
-  const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null);
-
-  // Step 2 & 3 State
-  const [currentPosition, setCurrentPosition] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
+  const [worldId, setWorldId] = useState<string | null>(null);
+  const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [missions, setMissions] = useState<Partial<Mission>[]>([]);
-  const [selectedMissionIndex, setSelectedMissionIndex] = useState<
-    number | null
-  >(null);
-
-  // Final Adventure State
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [adventureName, setAdventureName] = useState("");
+  const [savedAdventure, setSavedAdventure] = useState<Adventure | null>(null);
+  const [shareUrl, setShareUrl] = useState("");
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
+  const prevMissionsRef = useRef(missions);
 
   useEffect(() => {
-    // Get user's current location when component mounts
-    let mounted = true;
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          if (mounted) {
-            setCurrentPosition({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            });
-          }
-        },
-        (error) => {
-          console.error("Error getting location: ", error);
-          // Default to Tel Aviv if location fails
-          if (mounted) {
-            setTimeout(() => {
-              if (mounted) setCurrentPosition({ lat: 32.0853, lng: 34.7818 });
-            }, 0);
-          }
-        },
-      );
-    } else {
-      // Default to Tel Aviv if geolocation not supported
-      if (mounted) {
-        setTimeout(() => {
-          if (mounted) setCurrentPosition({ lat: 32.0853, lng: 34.7818 });
-        }, 0);
-      }
+    if (!navigator.geolocation) {
+      setUserPos([32.0853, 34.7818]);
+      return;
     }
-    return () => {
-      mounted = false;
-    };
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setUserPos([pos.coords.latitude, pos.coords.longitude]),
+      () => setUserPos([32.0853, 34.7818]),
+    );
   }, []);
 
-  const createNumberedIcon = (number: number) => {
-    return L.divIcon({
-      className: "custom-div-icon",
-      html: `<div class="flex items-center justify-center w-8 h-8 rounded-full shadow-lg text-white font-bold text-lg border-2 border-white bg-blue-500 hover:bg-blue-600 transition-colors cursor-pointer transform hover:scale-110">${number}</div>`,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
-    });
-  };
+  useEffect(() => {
+    if (savedAdventure && qrCanvasRef.current) {
+      QRCode.toCanvas(qrCanvasRef.current, shareUrl, { width: 160 });
+    }
+  }, [savedAdventure, shareUrl]);
 
-  const handleWorldSelect = (worldId: string) => {
-    setSelectedWorldId(worldId);
-    setStep(2);
-  };
+  useEffect(() => {
+    if (savedAdventure && prevMissionsRef.current !== missions) {
+      setSavedAdventure(null);
+      setShareUrl("");
+    }
+    prevMissionsRef.current = missions;
+  }, [missions, savedAdventure]);
+
+  const theme = worldId
+    ? worldThemes[worldId === "treasure" ? "treasures" : worldId]
+    : null;
 
   const handleMapClick = (lat: number, lng: number) => {
-    setMapHintDismissed(true);
+    const nextIdx = missions.length;
     const newMission: Partial<Mission> = {
       id: uuidv4(),
       lat,
       lng,
       missionType: "",
       amount: "",
-      title: `משימה ${missions.length + 1}`,
+      title: `משימה ${nextIdx + 1}`,
       description: "",
     };
-    setMissions([...missions, newMission]);
-    setSelectedMissionIndex(missions.length);
-    setStep(3);
+    setMissions((prev) => [...prev, newMission]);
+    setSelectedIdx(nextIdx);
   };
 
-  const handleMarkerClick = (index: number) => {
-    setSelectedMissionIndex(index);
-    setStep(3);
-  };
-
-  const handleSaveMission = (updatedMission: Partial<Mission>) => {
-    if (selectedMissionIndex !== null) {
-      const newMissions = [...missions];
-      newMissions[selectedMissionIndex] = updatedMission;
-      setMissions(newMissions);
-    }
-    setStep(2);
-    setSelectedMissionIndex(null);
+  const handleReorder = (idx: number, dir: -1 | 1) => {
+    const next = idx + dir;
+    if (next < 0 || next >= missions.length) return;
+    setMissions((prev) => {
+      const arr = [...prev];
+      [arr[idx], arr[next]] = [arr[next], arr[idx]];
+      return arr;
+    });
+    setSelectedIdx(next);
   };
 
   const handleDeleteMission = () => {
-    if (selectedMissionIndex !== null) {
-      const newMissions = missions.filter((_, i) => i !== selectedMissionIndex);
-      setMissions(newMissions);
-    }
-    setStep(2);
-    setSelectedMissionIndex(null);
-  };
-
-  const handleReorder = (index: number, direction: -1 | 1) => {
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= missions.length) return;
-    const reordered = [...missions];
-    [reordered[index], reordered[newIndex]] = [
-      reordered[newIndex],
-      reordered[index],
-    ];
-    setMissions(reordered);
+    if (selectedIdx === null) return;
+    setMissions((prev) => prev.filter((_, i) => i !== selectedIdx));
+    setSelectedIdx(null);
   };
 
   const handleSaveAdventure = () => {
-    if (!selectedWorldId || !adventureName.trim() || missions.length === 0) {
-      alert("נא למלא את שם ההרפתקה ולוודא שיש לפחות משימה אחת");
-      return;
-    }
-
-    const newAdventure: Adventure = {
+    if (!worldId || !adventureName.trim() || missions.length === 0) return;
+    const adventure: Adventure = {
       id: uuidv4(),
       name: adventureName.trim(),
-      worldId: selectedWorldId,
+      worldId,
       createdAt: Date.now(),
       missions: missions as Mission[],
     };
-
-    const existingAdventuresJson = localStorage.getItem("adventures");
-    const existingAdventures: Adventure[] = existingAdventuresJson
-      ? JSON.parse(existingAdventuresJson)
-      : [];
-
+    const existing: Adventure[] = JSON.parse(
+      localStorage.getItem("adventures") ?? "[]",
+    );
     localStorage.setItem(
       "adventures",
-      JSON.stringify([...existingAdventures, newAdventure]),
+      JSON.stringify([...existing, adventure]),
     );
-    onClose();
+    const url = buildShareUrl(adventure);
+    setShareUrl(url);
+    setSavedAdventure(adventure);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-50 overflow-y-auto" dir="rtl">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40 px-4 py-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-800">יצירת הרפתקה חדשה</h1>
-        <button
-          onClick={onClose}
-          className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center font-bold text-slate-600"
-        >
-          ✕
-        </button>
-      </header>
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert("הקישור הועתק!");
+    } catch {
+      window.prompt("העתק את הקישור:", shareUrl);
+    }
+  };
 
-      {/* Stepper Indicator */}
-      <div className="flex items-center justify-center gap-4 py-6 px-4 bg-white border-b border-slate-100 mb-6">
-        <div
-          className={`flex flex-col items-center flex-1 max-w-[100px] ${step >= 1 ? "text-blue-600" : "text-slate-400"}`}
-        >
-          <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2 ${step >= 1 ? "bg-blue-100 text-blue-600 border-2 border-blue-600" : "bg-slate-100 border-2 border-slate-200"}`}
+  const updateMissionField = <K extends keyof Mission>(
+    idx: number,
+    key: K,
+    value: Mission[K],
+  ) => {
+    setMissions((prev) => {
+      const arr = [...prev];
+      arr[idx] = { ...arr[idx], [key]: value };
+      return arr;
+    });
+  };
+
+  if (!worldId) {
+    return (
+      <div
+        className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-8"
+        dir="rtl"
+      >
+        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-8 relative">
+          <button
+            onClick={onClose}
+            className="absolute top-4 left-4 text-slate-500 hover:text-slate-800 text-2xl font-bold"
           >
-            1
-          </div>
-          <span className="text-sm font-medium text-center">עולם</span>
+            ✕
+          </button>
+          <WorldSelector onSelect={setWorldId} />
         </div>
-        <div
-          className={`h-1 w-12 rounded ${step >= 2 ? "bg-blue-600" : "bg-slate-200"}`}
-        ></div>
-        <div
-          className={`flex flex-col items-center flex-1 max-w-[100px] ${step >= 2 ? "text-blue-600" : "text-slate-400"}`}
-        >
-          <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2 ${step >= 2 ? "bg-blue-100 text-blue-600 border-2 border-blue-600" : "bg-slate-100 border-2 border-slate-200"}`}
-          >
-            2
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-row-reverse" dir="rtl">
+      {/* RIGHT PANEL */}
+      <div className="w-[360px] min-w-[320px] flex flex-col bg-white border-l border-slate-200 shadow-xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 bg-slate-50 border-b border-slate-200">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800">
+              {theme?.missionPointName ?? "נקודות"}
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              לחץ על המפה להוספת נקודה
+            </p>
           </div>
-          <span className="text-sm font-medium text-center">מפה</span>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-700 text-xl font-bold w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100"
+          >
+            ✕
+          </button>
         </div>
-        <div
-          className={`h-1 w-12 rounded ${step >= 3 ? "bg-blue-600" : "bg-slate-200"}`}
-        ></div>
-        <div
-          className={`flex flex-col items-center flex-1 max-w-[100px] ${step >= 3 ? "text-blue-600" : "text-slate-400"}`}
-        >
-          <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2 ${step >= 3 ? "bg-blue-100 text-blue-600 border-2 border-blue-600" : "bg-slate-100 border-2 border-slate-200"}`}
-          >
-            3
-          </div>
-          <span className="text-sm font-medium text-center">משימות</span>
+
+        <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2">
+          {missions.length === 0 && (
+            <div className="text-center text-slate-400 text-sm py-8 border-2 border-dashed border-slate-200 rounded-2xl">
+              <div className="text-3xl mb-2">👆</div>
+              לחץ על המפה להוספת נקודת משימה ראשונה
+            </div>
+          )}
+
+          {missions.map((m, i) => (
+            <div key={m.id}>
+              <div
+                onClick={() => setSelectedIdx(selectedIdx === i ? null : i)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all ${
+                  selectedIdx === i
+                    ? "border-blue-400 bg-blue-50"
+                    : "border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-blue-50/50"
+                }`}
+              >
+                <span className="w-7 h-7 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center shrink-0">
+                  {i + 1}
+                </span>
+                <span className="flex-1 text-sm font-medium text-slate-700 truncate">
+                  {m.title || `משימה ${i + 1}`}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleReorder(i, -1);
+                    }}
+                    disabled={i === 0}
+                    className="text-slate-400 hover:text-slate-700 disabled:opacity-20 w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleReorder(i, 1);
+                    }}
+                    disabled={i === missions.length - 1}
+                    className="text-slate-400 hover:text-slate-700 disabled:opacity-20 w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200"
+                  >
+                    ↓
+                  </button>
+                </div>
+              </div>
+
+              {selectedIdx === i && (
+                <div className="mt-1 border-2 border-blue-200 bg-blue-50 rounded-2xl p-4">
+                  <h3 className="text-sm font-bold text-blue-700 mb-3">
+                    ✏️ עריכת נקודה {i + 1}
+                  </h3>
+
+                  {theme && (
+                    <div className="mb-3">
+                      <label className="block text-xs font-bold text-slate-600 mb-1">
+                        {theme.entityLabel}
+                      </label>
+                      <select
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:border-blue-400"
+                        value={
+                          missions[i]?.emoji
+                            ? (theme.missionEntities.find(
+                                (e) => e.emoji === missions[i]?.emoji,
+                              )?.name ?? "")
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const name = e.target.value;
+                          const entity = theme.missionEntities.find(
+                            (en) => en.name === name,
+                          );
+                          if (!entity) return;
+                          const actionPrefix =
+                            worldId === "pokemon"
+                              ? "תפיסת"
+                              : worldId === "mario"
+                                ? "איסוף/הבסת"
+                                : "מציאת";
+                          updateMissionField(
+                            i,
+                            "title",
+                            `${actionPrefix} ${name}`,
+                          );
+                          updateMissionField(i, "emoji", entity.emoji);
+                          if (entity.imageUrl)
+                            updateMissionField(i, "imageUrl", entity.imageUrl);
+                        }}
+                      >
+                        <option value="">בחר מהרשימה...</option>
+                        {theme.missionEntities.map((en) => (
+                          <option key={en.name} value={en.name}>
+                            {en.emoji} {en.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div className="mb-3">
+                    <label className="block text-xs font-bold text-slate-600 mb-1">
+                      כותרת
+                    </label>
+                    <input
+                      type="text"
+                      value={missions[i]?.title ?? ""}
+                      onChange={(e) =>
+                        updateMissionField(i, "title", e.target.value)
+                      }
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:border-blue-400"
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="block text-xs font-bold text-slate-600 mb-1">
+                      תיאור (אופציונלי)
+                    </label>
+                    <textarea
+                      value={missions[i]?.description ?? ""}
+                      onChange={(e) =>
+                        updateMissionField(i, "description", e.target.value)
+                      }
+                      rows={2}
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:border-blue-400 resize-none"
+                      placeholder="לדוגמה: רוצו הכי מהר שאפשר!"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 mb-1">
+                        סוג פעילות
+                      </label>
+                      <input
+                        type="text"
+                        value={missions[i]?.missionType ?? ""}
+                        onChange={(e) =>
+                          updateMissionField(i, "missionType", e.target.value)
+                        }
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:border-blue-400"
+                        placeholder="ריצה, קפיצות..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 mb-1">
+                        כמות / זמן
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          missions[i]?.amount !== undefined
+                            ? String(missions[i]?.amount)
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const num = parseInt(val);
+                          updateMissionField(
+                            i,
+                            "amount",
+                            !isNaN(num) && num.toString() === val ? num : val,
+                          );
+                        }}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:border-blue-400"
+                        placeholder="10, דקה..."
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleDeleteMission}
+                    className="text-red-500 hover:text-red-700 text-xs font-bold underline"
+                  >
+                    🗑 מחק נקודה זו
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="border-t border-slate-200 p-4 bg-slate-50">
+          {!savedAdventure ? (
+            <>
+              <input
+                type="text"
+                placeholder="שם ההרפתקה..."
+                value={adventureName}
+                onChange={(e) => setAdventureName(e.target.value)}
+                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 bg-white focus:outline-none focus:border-blue-400 mb-3"
+              />
+              <button
+                onClick={handleSaveAdventure}
+                disabled={!adventureName.trim() || missions.length === 0}
+                className={`w-full py-3 rounded-xl font-bold text-white text-sm transition-all ${
+                  adventureName.trim() && missions.length > 0
+                    ? "bg-green-500 hover:bg-green-600 active:scale-95"
+                    : "bg-slate-300 cursor-not-allowed"
+                }`}
+              >
+                💾 שמור הרפתקה ({missions.length} נקודות)
+              </button>
+            </>
+          ) : (
+            <div className="text-center">
+              <div className="text-green-600 font-bold text-sm mb-3">
+                ✅ ההרפתקה נשמרה!
+              </div>
+              <canvas ref={qrCanvasRef} className="mx-auto rounded-lg mb-3" />
+              <button
+                onClick={handleCopyLink}
+                className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-bold text-sm mb-2 transition-all"
+              >
+                🔗 העתק לינק
+              </button>
+              <button
+                onClick={onClose}
+                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm transition-all"
+              >
+                סגור
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <main className="container mx-auto px-4 pb-24">
-        {step === 1 && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <WorldSelector onSelect={handleWorldSelect} />
+      {/* LEFT MAP PANE */}
+      <div className="flex-1 relative bg-slate-200">
+        {userPos ? (
+          <MapContainer
+            center={userPos}
+            zoom={16}
+            style={{ height: "100%", width: "100%" }}
+            zoomControl={true}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <InvalidateSize />
+            <FlyToUser center={userPos} />
+            <MapClickHandler onMapClick={handleMapClick} />
+            {missions.map((m, i) => (
+              <Marker
+                key={m.id}
+                position={[m.lat as number, m.lng as number]}
+                icon={createNumberedIcon(i + 1)}
+                eventHandlers={{ click: () => setSelectedIdx(i) }}
+              />
+            ))}
+          </MapContainer>
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-3" />
+            טוען מפה...
           </div>
         )}
 
-        {step === 2 && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-[60vh]">
-            <div className="bg-blue-50 text-blue-800 p-4 rounded-xl mb-4 text-center font-medium shadow-sm border border-blue-100">
-              לחצו על המפה כדי להוסיף נקודת משימה חדשה. לחצו על נקודה קיימת כדי
-              לערוך אותה.
-            </div>
-
-            <div className="flex-grow bg-slate-200 rounded-3xl overflow-hidden shadow-inner border-4 border-white relative map-container-wrapper">
-              {currentPosition ? (
-                <MapContainer
-                  center={[currentPosition.lat, currentPosition.lng]}
-                  zoom={15}
-                  style={{ height: "100%", width: "100%", zIndex: 0 }}
-                  zoomControl={false}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  <InvalidateSizeComponent />
-                  <MapEvents onMapClick={handleMapClick} />
-
-                  {/* Map should initially center on user but not track movement to allow panning */}
-                  {missions.length === 0 && (
-                    <ChangeView
-                      center={[currentPosition.lat, currentPosition.lng]}
-                    />
-                  )}
-
-                  {missions.map((mission, index) => (
-                    <Marker
-                      key={mission.id}
-                      position={[mission.lat as number, mission.lng as number]}
-                      icon={createNumberedIcon(index + 1)}
-                      eventHandlers={{
-                        click: () => handleMarkerClick(index),
-                      }}
-                    />
-                  ))}
-                </MapContainer>
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 font-medium">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-3"></div>
-                  טוען מפה...
-                </div>
-              )}
-
-              {/* Pulsing first-tap hint */}
-              {!mapHintDismissed &&
-                missions.length === 0 &&
-                currentPosition && (
-                  <div className="absolute inset-0 flex items-end justify-center pb-6 z-[500] pointer-events-none">
-                    <div className="bg-blue-600 text-white text-base font-bold px-5 py-3 rounded-full shadow-xl animate-bounce flex items-center gap-2">
-                      <span className="animate-ping inline-block w-2 h-2 rounded-full bg-white opacity-75"></span>
-                      הקש על המפה להוספת נקודה
-                    </div>
-                  </div>
-                )}
-            </div>
-
-            {missions.length > 0 && (
-              <div className="mt-6 bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
-                <h3 className="text-lg font-bold mb-3 text-slate-800">סדר המשימות</h3>
-                <ul className="flex flex-col gap-2">
-                  {missions.map((m, i) => (
-                    <li key={m.id} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-200">
-                      <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center shrink-0">{i + 1}</span>
-                      <span className="flex-1 text-slate-700 text-sm font-medium truncate">{m.title || `משימה ${i + 1}`}</span>
-                      <button type="button" onClick={() => handleReorder(i, -1)} disabled={i === 0} className="text-slate-400 hover:text-slate-700 disabled:opacity-20 text-lg leading-none px-1">↑</button>
-                      <button type="button" onClick={() => handleReorder(i, 1)} disabled={i === missions.length - 1} className="text-slate-400 hover:text-slate-700 disabled:opacity-20 text-lg leading-none px-1">↓</button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="mt-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <h3 className="text-xl font-bold mb-4 text-slate-800">
-                  שמירת ההרפתקה
-                </h3>
-                <input
-                  type="text"
-                  placeholder="שם ההרפתקה (למשל: אימון בוקר בפארק)"
-                  value={adventureName}
-                  onChange={(e) => setAdventureName(e.target.value)}
-                  className="w-full text-slate-900 bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-4 text-lg mb-6 focus:outline-none focus:border-blue-500 transition-colors"
-                />
-                <button
-                  onClick={handleSaveAdventure}
-                  disabled={!adventureName.trim()}
-                  className={`w-full min-h-[56px] text-white font-bold text-xl rounded-2xl shadow-md transition-all ${adventureName.trim() ? "bg-green-500 hover:bg-green-600 active:scale-95" : "bg-slate-300 cursor-not-allowed"}`}
-                >
-                  שמור הרפתקה ({missions.length} משימות)
-                </button>
-              </div>
-            )}
+        {missions.length === 0 && userPos && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-sm font-bold px-5 py-3 rounded-full shadow-xl animate-bounce pointer-events-none">
+            לחץ על המפה להוספת נקודת משימה
           </div>
         )}
-
-        {step === 3 && selectedMissionIndex !== null && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-lg mx-auto bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-            <h2 className="text-2xl font-bold mb-6 text-slate-800">
-              עריכת משימה {selectedMissionIndex + 1}
-            </h2>
-
-            {/* Form placeholder */}
-            <div className="space-y-6">
-              {selectedWorldId &&
-                worldThemes[
-                  selectedWorldId === "treasure" ? "treasures" : selectedWorldId
-                ] && (
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">
-                      {
-                        worldThemes[
-                          selectedWorldId === "treasure"
-                            ? "treasures"
-                            : selectedWorldId
-                        ].entityLabel
-                      }
-                    </label>
-                    <select
-                      className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-4 text-lg text-slate-900 focus:outline-none focus:border-blue-500 transition-colors mb-2"
-                      onChange={(e) => {
-                        const entityName = e.target.value;
-                        if (entityName) {
-                          const newMissions = [...missions];
-                          const actionPrefix =
-                            selectedWorldId === "pokemon"
-                              ? "תפיסת"
-                              : selectedWorldId === "mario"
-                                ? "איסוף/הבסת"
-                                : "מציאת";
-
-                          const selectedTheme =
-                            worldThemes[
-                              selectedWorldId === "treasure"
-                                ? "treasures"
-                                : selectedWorldId
-                            ];
-                          const entity = selectedTheme.missionEntities.find(
-                            (ent) => ent.name === entityName,
-                          );
-
-                          newMissions[selectedMissionIndex].title =
-                            `${actionPrefix} ${entityName}`;
-                          if (entity) {
-                            newMissions[selectedMissionIndex].emoji =
-                              entity.emoji;
-                            newMissions[selectedMissionIndex].imageUrl =
-                              entity.imageUrl;
-                          }
-
-                          setMissions(newMissions);
-                        }
-                      }}
-                      defaultValue=""
-                    >
-                      <option value="" disabled>
-                        בחר מהרשימה...
-                      </option>
-                      {worldThemes[
-                        selectedWorldId === "treasure"
-                          ? "treasures"
-                          : selectedWorldId
-                      ].missionEntities.map((entity, idx) => (
-                        <option key={idx} value={entity.name}>
-                          {entity.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">
-                  כותרת המשימה
-                </label>
-                <input
-                  type="text"
-                  value={missions[selectedMissionIndex]?.title || ""}
-                  onChange={(e) => {
-                    const newMissions = [...missions];
-                    newMissions[selectedMissionIndex].title = e.target.value;
-                    setMissions(newMissions);
-                  }}
-                  className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-4 text-lg text-slate-900 focus:outline-none focus:border-blue-500 transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">
-                  תיאור (אופציונלי)
-                </label>
-                <textarea
-                  value={missions[selectedMissionIndex]?.description || ""}
-                  onChange={(e) => {
-                    const newMissions = [...missions];
-                    newMissions[selectedMissionIndex].description =
-                      e.target.value;
-                    setMissions(newMissions);
-                  }}
-                  rows={3}
-                  className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-4 text-lg text-slate-900 focus:outline-none focus:border-blue-500 transition-colors resize-none"
-                  placeholder="לדוגמה: תעשו את זה הכי מהר שאפשר!"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">
-                    סוג פעילות
-                  </label>
-                  <input
-                    type="text"
-                    value={missions[selectedMissionIndex]?.missionType || ""}
-                    onChange={(e) => {
-                      const newMissions = [...missions];
-                      newMissions[selectedMissionIndex].missionType =
-                        e.target.value;
-                      setMissions(newMissions);
-                    }}
-                    className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-4 text-lg text-slate-900 focus:outline-none focus:border-blue-500 transition-colors"
-                    placeholder="לדוגמה: תרגיל חופשי, קפיצות..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">
-                    כמות / זמן
-                  </label>
-                  <input
-                    type="text"
-                    value={
-                      missions[selectedMissionIndex]?.amount !== undefined
-                        ? missions[selectedMissionIndex]?.amount
-                        : ""
-                    }
-                    onChange={(e) => {
-                      const newMissions = [...missions];
-                      const val = e.target.value;
-                      const numVal = parseInt(val);
-                      // Handle as number if parseable exact, otherwise keep as string
-                      newMissions[selectedMissionIndex].amount =
-                        !isNaN(numVal) && numVal.toString() === val
-                          ? numVal
-                          : val;
-                      setMissions(newMissions);
-                    }}
-                    className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-4 text-lg text-slate-900 focus:outline-none focus:border-blue-500 transition-colors"
-                    placeholder="לדוגמה: 10, חצי שעה..."
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8 flex gap-4">
-              <button
-                onClick={() =>
-                  handleSaveMission(missions[selectedMissionIndex])
-                }
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white min-h-[56px] font-bold text-lg rounded-xl transition-colors active:scale-95"
-              >
-                אישור וחזרה למפה
-              </button>
-              <button
-                onClick={handleDeleteMission}
-                className="bg-red-100 text-red-600 hover:bg-red-200 min-h-[56px] px-6 font-bold text-lg rounded-xl transition-colors active:scale-95"
-              >
-                מחק
-              </button>
-            </div>
-          </div>
-        )}
-      </main>
+      </div>
     </div>
   );
 };

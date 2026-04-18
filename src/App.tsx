@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { buildShareUrl } from "./utils/share";
 import { v4 as uuidv4 } from "uuid";
 import WorldSelector from "./components/WorldSelector";
 import AdventureCreator from "./components/AdventureCreator";
@@ -264,7 +265,7 @@ function App() {
   const handleShareAdventure = (e: React.MouseEvent, adventure: Adventure) => {
     e.stopPropagation();
     const jsonString = JSON.stringify(adventure);
-    const encodedStr = btoa(encodeURIComponent(jsonString));
+    const encodedStr = btoa(unescape(encodeURIComponent(jsonString)));
 
     // Copy to clipboard
     if (navigator.clipboard) {
@@ -686,10 +687,7 @@ function App() {
       case AppState.FINISH: {
         const handleShare = async () => {
           if (!currentAdventure) return;
-          const encoded = btoa(
-            unescape(encodeURIComponent(JSON.stringify(currentAdventure))),
-          );
-          const url = `${window.location.origin}${window.location.pathname}?adventure=${encoded}`;
+          const url = buildShareUrl(currentAdventure);
           if (navigator.share) {
             await navigator.share({ title: currentAdventure.name, url });
           } else {
