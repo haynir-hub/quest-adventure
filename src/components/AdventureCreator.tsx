@@ -65,6 +65,14 @@ const InvalidateSize = () => {
   return null;
 };
 
+const createNumberedIcon = (n: number) =>
+  L.divIcon({
+    className: "",
+    html: `<div style="width:32px;height:32px;background:#3b82f6;color:#fff;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;box-shadow:0 2px 8px rgba(59,130,246,.5)">${n}</div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
+
 const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
   const [worldId, setWorldId] = useState<string | null>(null);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
@@ -74,6 +82,7 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
   const [savedAdventure, setSavedAdventure] = useState<Adventure | null>(null);
   const [shareUrl, setShareUrl] = useState("");
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
+  const prevMissionsRef = useRef(missions);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -92,30 +101,31 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
     }
   }, [savedAdventure, shareUrl]);
 
+  useEffect(() => {
+    if (savedAdventure && prevMissionsRef.current !== missions) {
+      setSavedAdventure(null);
+      setShareUrl("");
+    }
+    prevMissionsRef.current = missions;
+  }, [missions, savedAdventure]);
+
   const theme = worldId
     ? worldThemes[worldId === "treasure" ? "treasures" : worldId]
     : null;
 
-  const createNumberedIcon = (n: number) =>
-    L.divIcon({
-      className: "",
-      html: `<div style="width:32px;height:32px;background:#3b82f6;color:#fff;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;box-shadow:0 2px 8px rgba(59,130,246,.5)">${n}</div>`,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
-    });
-
   const handleMapClick = (lat: number, lng: number) => {
+    const nextIdx = missions.length;
     const newMission: Partial<Mission> = {
       id: uuidv4(),
       lat,
       lng,
       missionType: "",
       amount: "",
-      title: `משימה ${missions.length + 1}`,
+      title: `משימה ${nextIdx + 1}`,
       description: "",
     };
     setMissions((prev) => [...prev, newMission]);
-    setSelectedIdx(missions.length);
+    setSelectedIdx(nextIdx);
   };
 
   const handleReorder = (idx: number, dir: -1 | 1) => {
@@ -157,8 +167,12 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
   };
 
   const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(shareUrl);
-    alert("הקישור הועתק!");
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert("הקישור הועתק!");
+    } catch {
+      window.prompt("העתק את הקישור:", shareUrl);
+    }
   };
 
   const updateMissionField = <K extends keyof Mission>(
@@ -306,8 +320,8 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
                         }}
                       >
                         <option value="">בחר מהרשימה...</option>
-                        {theme.missionEntities.map((en, idx) => (
-                          <option key={idx} value={en.name}>
+                        {theme.missionEntities.map((en) => (
+                          <option key={en.name} value={en.name}>
                             {en.emoji} {en.name}
                           </option>
                         ))}
