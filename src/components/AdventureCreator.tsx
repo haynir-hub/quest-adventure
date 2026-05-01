@@ -15,7 +15,6 @@ import WorldSelector from "./WorldSelector";
 import { worldThemes } from "../worlds/worldThemes";
 import { buildShareUrl } from "../utils/share";
 import MapSearchControl from "./MapSearchControl";
-import { DEFAULT_LOCATION } from "../constants";
 
 // Fix default marker icons (Leaflet + Vite issue)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -82,10 +81,20 @@ const userIcon = L.divIcon({
   iconAnchor: [8, 8],
 });
 
-const FALLBACK_POS: [number, number] = [
-  DEFAULT_LOCATION.lat,
-  DEFAULT_LOCATION.lng,
-];
+const AREA_STORAGE_KEY = "quest_creator_last_area";
+const ISRAEL_WIDE_AREA: CreatorArea = {
+  lat: 31.5,
+  lng: 35.0,
+  name: "תצוגה ארצית",
+};
+const ISRAEL_WIDE_ZOOM = 8;
+const LOCAL_ZOOM = 16;
+
+interface CreatorArea {
+  lat: number;
+  lng: number;
+  name?: string;
+}
 
 const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
   const [worldId, setWorldId] = useState<string | null>(null);
@@ -96,19 +105,44 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
   const [savedAdventure, setSavedAdventure] = useState<Adventure | null>(null);
   const [shareUrl, setShareUrl] = useState("");
   const [sheetExpanded, setSheetExpanded] = useState(false);
+  const [creatorArea, setCreatorArea] = useState<CreatorArea | null>(() => {
+    try {
+      const saved = localStorage.getItem(AREA_STORAGE_KEY);
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      if (
+        parsed &&
+        typeof parsed.lat === "number" &&
+        typeof parsed.lng === "number"
+      ) {
+        return parsed as CreatorArea;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [autoFocusSearch, setAutoFocusSearch] = useState(false);
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
   const prevMissionsRef = useRef(missions);
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setUserPos(FALLBACK_POS);
-      return;
-    }
+    if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => setUserPos([pos.coords.latitude, pos.coords.longitude]),
-      () => setUserPos(FALLBACK_POS),
+      () => {},
     );
   }, []);
+
+  useEffect(() => {
+    if (!creatorArea) return;
+    try {
+      localStorage.setItem(AREA_STORAGE_KEY, JSON.stringify(creatorArea));
+    } catch {
+      // localStorage full or blocked — silently ignore
+    }
+  }, [creatorArea]);
 
   useEffect(() => {
     if (savedAdventure && qrCanvasRef.current) {
@@ -213,6 +247,36 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
     });
   };
 
+  const handlePickMyLocation = () => {
+    setLocationError(null);
+    if (!navigator.geolocation) {
+      setLocationError("הדפדפן שלך אינו תומך בשירות מיקום");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setUserPos([lat, lng]);
+        setCreatorArea({ lat, lng, name: "מיקומי" });
+      },
+      () => {
+        setLocationError("לא ניתן לקבל מיקום — בדקו הרשאות");
+      },
+    );
+  };
+
+  const handleChangeArea = () => {
+    setCreatorArea(null);
+    setMissions([]);
+    setSelectedIdx(null);
+    setSheetExpanded(false);
+    setSavedAdventure(null);
+    setShareUrl("");
+    setAutoFocusSearch(false);
+    setLocationError(null);
+  };
+
   if (!worldId) {
     return (
       <div
@@ -231,6 +295,72 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
       </div>
     );
   }
+
+  if (!creatorArea) {
+    return (
+      <div
+        className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 md:p-8"
+        dir="rtl"
+      >
+        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl p-6 md:p-10 relative">
+          <button
+            onClick={onClose}
+            className="absolute top-4 left-4 text-slate-500 hover:text-slate-800 text-2xl font-bold w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100"
+            aria-label="סגור"
+          >
+            ✕
+          </button>
+          <h2 className="text-xl md:text-2xl font-bold text-slate-800 text-center mb-2">
+            איפה תרצו ליצור את ההרפתקה?
+          </h2>
+          <p className="text-slate-500 text-center text-sm mb-6">
+            בחרו אזור התחלה למפה
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            <button
+              type="button"
+              onClick={handlePickMyLocation}
+              className="flex flex-col items-center justify-center gap-2 py-6 px-4 bg-blue-50 hover:bg-blue-100 active:scale-95 border-2 border-blue-200 rounded-2xl text-slate-800 font-bold text-sm transition-all min-h-[112px]"
+            >
+              <span className="text-3xl">📍</span>
+              <span>המיקום שלי עכשיו</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setCreatorArea(ISRAEL_WIDE_AREA);
+                setAutoFocusSearch(true);
+              }}
+              className="flex flex-col items-center justify-center gap-2 py-6 px-4 bg-green-50 hover:bg-green-100 active:scale-95 border-2 border-green-200 rounded-2xl text-slate-800 font-bold text-sm transition-all min-h-[112px]"
+            >
+              <span className="text-3xl">🔍</span>
+              <span>חיפוש כתובת</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setCreatorArea(ISRAEL_WIDE_AREA);
+                setAutoFocusSearch(false);
+              }}
+              className="flex flex-col items-center justify-center gap-2 py-6 px-4 bg-amber-50 hover:bg-amber-100 active:scale-95 border-2 border-amber-200 rounded-2xl text-slate-800 font-bold text-sm transition-all min-h-[112px]"
+            >
+              <span className="text-3xl">🗺️</span>
+              <span>בחר על המפה</span>
+            </button>
+          </div>
+          {locationError && (
+            <div className="mt-4 text-center text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl py-2 px-3">
+              {locationError}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const mapCenter: [number, number] = [creatorArea.lat, creatorArea.lng];
+  const initialZoom =
+    creatorArea.name === ISRAEL_WIDE_AREA.name ? ISRAEL_WIDE_ZOOM : LOCAL_ZOOM;
 
   return (
     <div
@@ -505,39 +635,49 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
 
       {/* MAP PANE */}
       <div className="order-1 md:order-none flex-1 min-h-0 relative bg-slate-200">
-        {userPos ? (
-          <MapContainer
-            center={userPos}
-            zoom={16}
-            style={{ height: "100%", width: "100%" }}
-            zoomControl={true}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <InvalidateSize />
-            <FlyToUser center={userPos} />
-            <MapClickHandler onMapClick={handleMapClick} />
-            <MapSearchControl onSelect={(lat, lng) => setUserPos([lat, lng])} />
+        <MapContainer
+          center={mapCenter}
+          zoom={initialZoom}
+          style={{ height: "100%", width: "100%" }}
+          zoomControl={true}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <InvalidateSize />
+          <FlyToUser center={mapCenter} />
+          <MapClickHandler onMapClick={handleMapClick} />
+          <MapSearchControl
+            autoFocus={autoFocusSearch}
+            onSelect={(lat, lng, name) => {
+              setCreatorArea({ lat, lng, name });
+              setAutoFocusSearch(false);
+            }}
+          />
+          {userPos && (
             <Marker position={userPos} icon={userIcon} interactive={false} />
-            {missions.map((m, i) => (
-              <Marker
-                key={m.id}
-                position={[m.lat as number, m.lng as number]}
-                icon={createNumberedIcon(i + 1)}
-                eventHandlers={{ click: () => selectMissionFromMap(i) }}
-              />
-            ))}
-          </MapContainer>
-        ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-3" />
-            טוען מפה...
-          </div>
-        )}
+          )}
+          {missions.map((m, i) => (
+            <Marker
+              key={m.id}
+              position={[m.lat as number, m.lng as number]}
+              icon={createNumberedIcon(i + 1)}
+              eventHandlers={{ click: () => selectMissionFromMap(i) }}
+            />
+          ))}
+        </MapContainer>
 
-        {missions.length === 0 && userPos && (
+        <button
+          type="button"
+          onClick={handleChangeArea}
+          className="absolute top-3 right-3 z-[500] bg-white/95 hover:bg-white text-slate-700 text-xs font-bold px-3 py-2 rounded-xl shadow-md border border-slate-200 min-h-[44px] min-w-[44px] flex items-center gap-1"
+          aria-label="שנה אזור"
+        >
+          🗺️ שנה אזור
+        </button>
+
+        {missions.length === 0 && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-sm font-bold px-5 py-3 rounded-full shadow-xl animate-bounce pointer-events-none">
             לחץ על המפה להוספת נקודת משימה
           </div>

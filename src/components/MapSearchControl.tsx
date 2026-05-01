@@ -20,6 +20,7 @@ interface RecentSearch {
 interface MapSearchControlProps {
   onSelect?: (lat: number, lng: number, displayName: string) => void;
   placeholder?: string;
+  autoFocus?: boolean;
 }
 
 const loadRecent = (): RecentSearch[] => {
@@ -54,6 +55,7 @@ const saveRecent = (entry: RecentSearch) => {
 export const MapSearchControl: React.FC<MapSearchControlProps> = ({
   onSelect,
   placeholder = "חפש כתובת או מיקום בישראל...",
+  autoFocus = false,
 }) => {
   const map = useMap();
   const [query, setQuery] = useState("");
@@ -146,6 +148,7 @@ export const MapSearchControl: React.FC<MapSearchControlProps> = ({
           onFocus={() => setFocused(true)}
           onBlur={() => window.setTimeout(() => setFocused(false), 200)}
           placeholder={placeholder}
+          autoFocus={autoFocus}
           className="w-full bg-white/95 backdrop-blur-sm rounded-xl pr-10 pl-10 py-3 text-slate-800 text-sm shadow-lg border border-slate-200 outline-none focus:ring-2 focus:ring-blue-400 placeholder:text-slate-400"
         />
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
