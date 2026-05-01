@@ -115,10 +115,9 @@ function App() {
         imported.id = uuidv4(); // give it a fresh id to avoid collisions
         setCurrentAdventure(imported);
         setGameState({
+          adventureId: imported.id,
           currentMissionIndex: 0,
           completedMissions: [],
-          collectedItems: [],
-          score: 0,
         });
         safeLsSet("quest_onboarded", "1");
         window.history.replaceState({}, "", window.location.pathname);

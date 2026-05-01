@@ -38,6 +38,7 @@ export default defineConfig(({ command }) => ({
         ],
       },
       workbox: {
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MiB — covers large character PNGs
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff,woff2,ttf}"],
         runtimeCaching: [
           {
