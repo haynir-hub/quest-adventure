@@ -15,6 +15,7 @@ import WorldSelector from "./WorldSelector";
 import { worldThemes } from "../worlds/worldThemes";
 import { buildShareUrl } from "../utils/share";
 import MapSearchControl from "./MapSearchControl";
+import { DEFAULT_LOCATION } from "../constants";
 
 // Fix default marker icons (Leaflet + Vite issue)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -74,6 +75,18 @@ const createNumberedIcon = (n: number) =>
     iconAnchor: [16, 16],
   });
 
+const userIcon = L.divIcon({
+  className: "user-location-icon",
+  html: `<div class="w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-md animate-pulse"></div>`,
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+});
+
+const FALLBACK_POS: [number, number] = [
+  DEFAULT_LOCATION.lat,
+  DEFAULT_LOCATION.lng,
+];
+
 const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
   const [worldId, setWorldId] = useState<string | null>(null);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
@@ -82,17 +95,18 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
   const [adventureName, setAdventureName] = useState("");
   const [savedAdventure, setSavedAdventure] = useState<Adventure | null>(null);
   const [shareUrl, setShareUrl] = useState("");
+  const [sheetExpanded, setSheetExpanded] = useState(false);
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
   const prevMissionsRef = useRef(missions);
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      setUserPos([32.0853, 34.7818]);
+      setUserPos(FALLBACK_POS);
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => setUserPos([pos.coords.latitude, pos.coords.longitude]),
-      () => setUserPos([32.0853, 34.7818]),
+      () => setUserPos(FALLBACK_POS),
     );
   }, []);
 
@@ -127,6 +141,17 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
     };
     setMissions((prev) => [...prev, newMission]);
     setSelectedIdx(nextIdx);
+    setSheetExpanded(true);
+  };
+
+  const toggleMissionRow = (i: number) => {
+    setSelectedIdx((prev) => (prev === i ? null : i));
+    setSheetExpanded(true);
+  };
+
+  const selectMissionFromMap = (i: number) => {
+    setSelectedIdx(i);
+    setSheetExpanded(true);
   };
 
   const handleReorder = (idx: number, dir: -1 | 1) => {
@@ -208,16 +233,36 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-row-reverse" dir="rtl">
-      {/* RIGHT PANEL */}
-      <div className="w-[360px] min-w-[320px] flex flex-col bg-white border-l border-slate-200 shadow-xl overflow-hidden">
+    <div
+      className="fixed inset-0 z-50 flex flex-col md:flex-row-reverse"
+      dir="rtl"
+    >
+      {/* SIDEBAR (desktop) / BOTTOM SHEET (mobile) */}
+      <div
+        className={`order-2 md:order-none w-full md:w-[360px] md:min-w-[320px] flex flex-col bg-white border-t md:border-t-0 md:border-l border-slate-200 shadow-xl overflow-hidden transition-[max-height] duration-300 ease-out md:max-h-none ${
+          sheetExpanded ? "max-h-[80vh]" : "max-h-[140px]"
+        }`}
+      >
+        {/* Drag handle (mobile only) */}
+        <button
+          type="button"
+          onClick={() => setSheetExpanded((v) => !v)}
+          className="md:hidden flex items-center justify-center min-h-[32px] shrink-0 bg-white"
+          aria-label={sheetExpanded ? "כווץ" : "הרחב"}
+          aria-expanded={sheetExpanded}
+        >
+          <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
+        </button>
+
         <div className="flex items-center justify-between px-5 py-4 bg-slate-50 border-b border-slate-200">
           <div>
             <h2 className="text-lg font-bold text-slate-800">
               {theme?.missionPointName ?? "נקודות"}
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              לחץ על המפה להוספת נקודה
+              {missions.length > 0
+                ? `${missions.length} נקודות • לחץ על המפה להוספת`
+                : "לחץ על המפה להוספת נקודה"}
             </p>
           </div>
           <button
@@ -239,7 +284,7 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
           {missions.map((m, i) => (
             <div key={m.id}>
               <div
-                onClick={() => setSelectedIdx(selectedIdx === i ? null : i)}
+                onClick={() => toggleMissionRow(i)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all ${
                   selectedIdx === i
                     ? "border-blue-400 bg-blue-50"
@@ -458,8 +503,8 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
         </div>
       </div>
 
-      {/* LEFT MAP PANE */}
-      <div className="flex-1 relative bg-slate-200">
+      {/* MAP PANE */}
+      <div className="order-1 md:order-none flex-1 min-h-0 relative bg-slate-200">
         {userPos ? (
           <MapContainer
             center={userPos}
@@ -475,12 +520,13 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
             <FlyToUser center={userPos} />
             <MapClickHandler onMapClick={handleMapClick} />
             <MapSearchControl onSelect={(lat, lng) => setUserPos([lat, lng])} />
+            <Marker position={userPos} icon={userIcon} interactive={false} />
             {missions.map((m, i) => (
               <Marker
                 key={m.id}
                 position={[m.lat as number, m.lng as number]}
                 icon={createNumberedIcon(i + 1)}
-                eventHandlers={{ click: () => setSelectedIdx(i) }}
+                eventHandlers={{ click: () => selectMissionFromMap(i) }}
               />
             ))}
           </MapContainer>
