@@ -233,32 +233,32 @@ Single component with Tailwind `md:` breakpoints. Mobile = full-screen map + bot
 
 ### Task 2.1 — Restructure layout
 
-- [ ] Change root div from `flex flex-row-reverse` to `flex flex-col md:flex-row-reverse`
-- [ ] Change sidebar from `w-[360px] min-w-[320px]` to `w-full md:w-[360px] md:min-w-[320px]`
-- [ ] Add ordering: map gets `order-1`, sidebar gets `order-2` on mobile (so on desktop the row-reverse keeps sidebar on right; on mobile column means map first, sheet below)
-- [ ] Map container: `flex-1 min-h-0` so it grows to fill remaining space
+- [x] Change root div from `flex flex-row-reverse` to `flex flex-col md:flex-row-reverse`
+- [x] Change sidebar from `w-[360px] min-w-[320px]` to `w-full md:w-[360px] md:min-w-[320px]`
+- [x] Add ordering: map gets `order-1`, sidebar gets `order-2` on mobile (so on desktop the row-reverse keeps sidebar on right; on mobile column means map first, sheet below)
+- [x] Map container: `flex-1 min-h-0` so it grows to fill remaining space
 
 ### Task 2.2 — Bottom-sheet behavior (mobile only)
 
-- [ ] Add state: `const [sheetExpanded, setSheetExpanded] = useState(false)`
-- [ ] Sidebar gets two heights based on state and viewport:
+- [x] Add state: `const [sheetExpanded, setSheetExpanded] = useState(false)`
+- [x] Sidebar gets two heights based on state and viewport:
   - Mobile collapsed: `max-h-[140px]` (drag handle + summary row)
   - Mobile expanded: `max-h-[80vh]` (full editing UI)
   - Desktop: ignore the state, use `md:max-h-none`
-- [ ] Animation: `transition-[max-height] duration-300 ease-out`
-- [ ] Add a drag-handle bar at the top of the sheet (mobile only): a small horizontal pill with a tap area covering the top 32px that toggles `sheetExpanded`
-- [ ] Auto-expand on marker selection: when `selectedIdx` becomes non-null on mobile, set `sheetExpanded = true`
-- [ ] Auto-collapse on map click in empty area: if a click adds a new marker, expand; if a click on the map outside any marker doesn't add anything (it does, currently), keep expanded
+- [x] Animation: `transition-[max-height] duration-300 ease-out`
+- [x] Add a drag-handle bar at the top of the sheet (mobile only): a small horizontal pill with a tap area covering the top 32px that toggles `sheetExpanded`
+- [x] Auto-expand on marker selection: when `selectedIdx` becomes non-null on mobile, set `sheetExpanded = true`
+- [x] Auto-collapse on map click in empty area: if a click adds a new marker, expand; if a click on the map outside any marker doesn't add anything (it does, currently), keep expanded
 
 ### Task 2.3 — Show user-location marker on the creator map
 
-- [ ] In `<MapContainer>`, add a `<Marker>` at `userPos` using a divIcon copied from `MapView.tsx:207-212` (small green pulsing dot)
-- [ ] Critical UX: without this, the teacher doesn't know where they're standing relative to the markers they're placing
+- [x] In `<MapContainer>`, add a `<Marker>` at `userPos` using a divIcon copied from `MapView.tsx:207-212` (small green pulsing dot)
+- [x] Critical UX: without this, the teacher doesn't know where they're standing relative to the markers they're placing
 
 ### Task 2.4 — Replace hardcoded fallback location
 
-- [ ] `AdventureCreator.tsx:89,94` uses `[32.0853, 34.7818]`. Replace with `DEFAULT_LOCATION` from `src/constants.ts`
-- [ ] `DEFAULT_LOCATION` is `{ lat, lng }` — convert to `[lat, lng]` tuple here
+- [x] `AdventureCreator.tsx:89,94` uses `[32.0853, 34.7818]`. Replace with `DEFAULT_LOCATION` from `src/constants.ts`
+- [x] `DEFAULT_LOCATION` is `{ lat, lng }` — convert to `[lat, lng]` tuple here
 
 ### Batch 2 QA Gate
 
@@ -550,6 +550,9 @@ docs/superpowers/plans/2026-05-02-mobile-creator-and-search.md
 - **Batch 0 — QA Gate static-check command corrected.** Plan said `npx tsc --noEmit` but this project uses TypeScript project references — that command misses errors caught only via `tsc -b`. From now on the QA Gate uses `npx tsc -b --noEmit` (or simply `npm run build` which runs `tsc -b && vite build`).
 - **Batch 0 — Lint baseline note.** `npm run lint` reports 48 errors + 7 warnings on the existing codebase (mostly `react-hooks/set-state-in-effect` and pre-existing `no-explicit-any`). These pre-date this plan. Acceptance criterion adjusted: do not introduce _new_ lint errors. Final delivery (Batch 5) will compare error counts before/after to confirm no regressions.
 - **Batch 1 — Plan said "extract SearchControl"; reality is "create from scratch".** The `SearchControl` referenced in `MapView.tsx:51-118` of the original Read was actually part of the user's WIP (now stashed), not committed code. Committed `main` MapView.tsx (377 lines) has no search box at all. So Batch 1 creates `MapSearchControl.tsx` from scratch and adds it to both `MapView.tsx` (player benefit, restores feature) and `AdventureCreator.tsx` (the user's primary ask).
+- **Batch 2.2 — Replaced auto-expand `useEffect` with direct event-handler calls.** The plan said "when `selectedIdx` becomes non-null, set `sheetExpanded = true`" via effect. That triggers `react-hooks/set-state-in-effect` (a new lint error vs. baseline). Fix: extract `toggleMissionRow` (list click — toggles selection) and `selectMissionFromMap` (marker click — always sets) helpers that do `setSelectedIdx(...)` and `setSheetExpanded(true)` in one place. `handleMapClick` also calls `setSheetExpanded(true)` directly. Net behavior identical to the plan; lint baseline preserved (48 errors).
+- **Batch 2 — userIcon location.** The plan referenced `MapView.tsx:207-212` for the userIcon pattern, but the actual divIcon definition is at `MapView.tsx:138-143`. Same pattern; doc-only correction.
+- **Batch 2 — Desktop layout note.** Plan QA says "desktop: sidebar on right, map on left". With the existing `flex-row-reverse + dir="rtl"` (DOM order [sidebar, map]) the visual result is sidebar on **left**, map on **right**. This pre-dates Batch 2 (it is how `fd2ecd0` shipped) and was not changed by this batch — Batch 2 preserves prior desktop behavior. If a future plan wants sidebar-on-right, swap DOM order to [map, sidebar] and use `flex-row` instead of `flex-row-reverse`.
 
 ## Blockers Encountered
 
