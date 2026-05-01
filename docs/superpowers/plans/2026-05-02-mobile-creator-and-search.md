@@ -293,22 +293,22 @@ Static checks.
 
 ### Task 3.1 — Add entry-screen state
 
-- [ ] In `AdventureCreator.tsx`, after world selection but before map render, gate on a new state `creatorArea: { lat: number; lng: number; name?: string } | null`
-- [ ] On mount, check `localStorage.getItem('quest_creator_last_area')`. If present, parse and use as default. If not, leave `creatorArea = null` — show entry screen.
-- [ ] If `creatorArea === null` AND `worldId !== null`, render the entry screen instead of the map UI
+- [x] In `AdventureCreator.tsx`, after world selection but before map render, gate on a new state `creatorArea: { lat: number; lng: number; name?: string } | null`
+- [x] On mount, check `localStorage.getItem('quest_creator_last_area')`. If present, parse and use as default. If not, leave `creatorArea = null` — show entry screen.
+- [x] If `creatorArea === null` AND `worldId !== null`, render the entry screen instead of the map UI
 
 ### Task 3.2 — Entry screen UI
 
 Three buttons (vertical-stack on mobile, 3-column grid on desktop with `grid grid-cols-1 md:grid-cols-3 gap-4`):
 
-- [ ] 📍 **המיקום שלי עכשיו** — calls `navigator.geolocation.getCurrentPosition`, on success sets `creatorArea = { lat, lng, name: 'מיקומי' }`. On failure: shows inline error and disables this button only.
-- [ ] 🔍 **חיפוש כתובת** — opens an inline `MapSearchControl` (no map; just the search box). When user picks a result, set `creatorArea = { lat, lng, name }`.
-- [ ] 🗺️ **בחר על המפה** — sets `creatorArea = { lat: 31.5, lng: 35.0, name: 'תצוגה ארצית' }`. The user pans freely from there.
+- [x] 📍 **המיקום שלי עכשיו** — calls `navigator.geolocation.getCurrentPosition`, on success sets `creatorArea = { lat, lng, name: 'מיקומי' }`. On failure: shows inline error and disables this button only.
+- [x] 🔍 **חיפוש כתובת** — opens an inline `MapSearchControl` (no map; just the search box). When user picks a result, set `creatorArea = { lat, lng, name }`.
+- [x] 🗺️ **בחר על המפה** — sets `creatorArea = { lat: 31.5, lng: 35.0, name: 'תצוגה ארצית' }`. The user pans freely from there.
 
 ### Task 3.3 — Persist + offer "change area"
 
-- [ ] On `creatorArea` set, write `JSON.stringify({ lat, lng, name })` to `localStorage('quest_creator_last_area')`
-- [ ] On the creator map, add a small "🗺️ שנה אזור" text button (top-right of the map area, mobile-friendly tap target ≥44px) that resets `creatorArea = null` and re-shows the entry screen
+- [x] On `creatorArea` set, write `JSON.stringify({ lat, lng, name })` to `localStorage('quest_creator_last_area')`
+- [x] On the creator map, add a small "🗺️ שנה אזור" text button (top-right of the map area, mobile-friendly tap target ≥44px) that resets `creatorArea = null` and re-shows the entry screen
 
 ### Batch 3 QA Gate
 
@@ -553,6 +553,9 @@ docs/superpowers/plans/2026-05-02-mobile-creator-and-search.md
 - **Batch 2.2 — Replaced auto-expand `useEffect` with direct event-handler calls.** The plan said "when `selectedIdx` becomes non-null, set `sheetExpanded = true`" via effect. That triggers `react-hooks/set-state-in-effect` (a new lint error vs. baseline). Fix: extract `toggleMissionRow` (list click — toggles selection) and `selectMissionFromMap` (marker click — always sets) helpers that do `setSelectedIdx(...)` and `setSheetExpanded(true)` in one place. `handleMapClick` also calls `setSheetExpanded(true)` directly. Net behavior identical to the plan; lint baseline preserved (48 errors).
 - **Batch 2 — userIcon location.** The plan referenced `MapView.tsx:207-212` for the userIcon pattern, but the actual divIcon definition is at `MapView.tsx:138-143`. Same pattern; doc-only correction.
 - **Batch 2 — Desktop layout note.** Plan QA says "desktop: sidebar on right, map on left". With the existing `flex-row-reverse + dir="rtl"` (DOM order [sidebar, map]) the visual result is sidebar on **left**, map on **right**. This pre-dates Batch 2 (it is how `fd2ecd0` shipped) and was not changed by this batch — Batch 2 preserves prior desktop behavior. If a future plan wants sidebar-on-right, swap DOM order to [map, sidebar] and use `flex-row` instead of `flex-row-reverse`.
+- **Batch 3.2 — "חיפוש כתובת" implementation.** Plan said "opens an inline MapSearchControl (no map; just the search box)" — i.e. a separate search-then-open-map flow. Reality: the existing `MapSearchControl` component requires `useMap()` (so cannot be rendered standalone). To avoid duplicating ~200 lines of search logic, this batch instead opens the map immediately at the Israel-wide view and adds an `autoFocus` prop to `MapSearchControl` so the on-map search box is auto-focused when the user signaled search intent. UX result is similar (search → map opens at result), with one less screen transition. Documented as an intentional simplification. The `onSelect` callback on the map's search box now also updates `creatorArea` (so the area is persisted across reloads).
+- **Batch 3 — Removed `FALLBACK_POS` and `DEFAULT_LOCATION` import.** With the entry-screen flow, the geolocation effect no longer needs a hardcoded fallback — if GPS fails, `userPos` (the green dot) is simply `null` and not rendered. The `creatorArea` state covers map-center selection. Net: −1 lint error vs. baseline (47 vs 48) because the previous fallback `setUserPos(FALLBACK_POS)` in the error callback was a `react-hooks/set-state-in-effect` violation.
+- **Batch 3 — `setMissions([])` on "שנה אזור".** When the user resets the area, all in-progress missions are cleared. Reason: missions placed in one area are not portable to another (their lat/lng are wrong). Cleared along with `selectedIdx`, `sheetExpanded`, `savedAdventure`, and `shareUrl` for a clean restart. Saved adventures in localStorage are unaffected (those live under `adventures`, not the creator's transient state).
 
 ## Blockers Encountered
 
