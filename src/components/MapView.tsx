@@ -6,6 +6,7 @@ import {
   Popup,
   useMap,
   Polyline,
+  ZoomControl,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -49,6 +50,21 @@ function ChangeView({ center }: { center: [number, number] | null }) {
   return null;
 }
 
+function MapRefSync({
+  mapRef,
+}: {
+  mapRef: React.MutableRefObject<L.Map | null>;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    mapRef.current = map;
+    return () => {
+      mapRef.current = null;
+    };
+  }, [map, mapRef]);
+  return null;
+}
+
 export const MapView: React.FC<MapViewProps> = ({
   missions,
   currentMissionIndex,
@@ -63,6 +79,15 @@ export const MapView: React.FC<MapViewProps> = ({
   const [gpsErrorDismissed, setGpsErrorDismissed] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [deviceHeading, setDeviceHeading] = React.useState<number | null>(null);
+  const mapRef = React.useRef<L.Map | null>(null);
+
+  const handleRecenter = () => {
+    if (currentPosition && mapRef.current) {
+      mapRef.current.flyTo([currentPosition.lat, currentPosition.lng], 17, {
+        duration: 0.8,
+      });
+    }
+  };
 
   const world = worldsData.find((w) => w.id === worldId);
   const worldEmoji = world?.emoji || "📍";
@@ -157,7 +182,15 @@ export const MapView: React.FC<MapViewProps> = ({
 
   useEffect(() => {
     const handler = (e: DeviceOrientationEvent) => {
-      if (e.alpha !== null) setDeviceHeading(e.alpha);
+      // iOS exposes true compass heading via this non-standard property
+      const iosHeading = (e as unknown as { webkitCompassHeading?: number })
+        .webkitCompassHeading;
+      if (typeof iosHeading === "number") {
+        setDeviceHeading(iosHeading);
+      } else if (e.alpha !== null) {
+        // Android: alpha is rotation around z-axis; subtract from 360 for compass-like behavior
+        setDeviceHeading((360 - e.alpha + 360) % 360);
+      }
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const api = DeviceOrientationEvent as any;
@@ -246,6 +279,8 @@ export const MapView: React.FC<MapViewProps> = ({
                 : null
             }
           />
+          <ZoomControl position="bottomleft" />
+          <MapRefSync mapRef={mapRef} />
           <MapSearchControl />
 
           {/* User Location Marker */}
@@ -282,10 +317,26 @@ export const MapView: React.FC<MapViewProps> = ({
             </Marker>
           ))}
         </MapContainer>
+
+        {/* Recenter button — rendered as sibling to MapContainer so it's positioned against the map wrapper, not inside Leaflet's panes */}
+        <button
+          type="button"
+          onClick={handleRecenter}
+          disabled={!currentPosition}
+          className={`absolute bottom-[120px] left-2 z-[450] w-11 h-11 rounded-full bg-white text-xl shadow-lg border border-slate-200 flex items-center justify-center transition-all ${
+            !currentPosition
+              ? "opacity-40 cursor-not-allowed"
+              : "hover:bg-slate-50 active:scale-95"
+          }`}
+          aria-label="חזור למיקומי"
+        >
+          📍
+        </button>
       </div>
 
       {/* Bottom Overlay Area (Absolute Overlay over map) */}
-      <div className="absolute bottom-6 left-4 right-4 z-[400] pb-[env(safe-area-inset-bottom)] pointer-events-none flex flex-col gap-4">
+      {/* left-[80px] on mobile leaves room for the bottom-left button stack (zoom + recenter) */}
+      <div className="absolute bottom-6 left-[80px] md:left-4 right-4 z-[400] pb-[env(safe-area-inset-bottom)] pointer-events-none flex flex-col gap-4">
         {/* Distance and Bearing Info Card */}
         {nextMission && !isArrived && (
           <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl p-4 shadow-xl border border-slate-200 dark:border-slate-700 pointer-events-auto relative">
