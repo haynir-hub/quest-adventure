@@ -14,6 +14,7 @@ import { assetUrl } from "../utils/assets";
 import { calculateDistance, calculateBearing } from "../utils/geo";
 import { playSuccessSound } from "../utils/audio";
 import { worldsData } from "../worlds/worldsData";
+import MapSearchControl from "./MapSearchControl";
 
 // Fix for default marker icon in react-leaflet
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -245,6 +246,7 @@ export const MapView: React.FC<MapViewProps> = ({
                 : null
             }
           />
+          <MapSearchControl />
 
           {/* User Location Marker */}
           <Marker

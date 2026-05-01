@@ -14,6 +14,7 @@ import type { Mission, Adventure } from "../types/index";
 import WorldSelector from "./WorldSelector";
 import { worldThemes } from "../worlds/worldThemes";
 import { buildShareUrl } from "../utils/share";
+import MapSearchControl from "./MapSearchControl";
 
 // Fix default marker icons (Leaflet + Vite issue)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -473,6 +474,7 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
             <InvalidateSize />
             <FlyToUser center={userPos} />
             <MapClickHandler onMapClick={handleMapClick} />
+            <MapSearchControl onSelect={(lat, lng) => setUserPos([lat, lng])} />
             {missions.map((m, i) => (
               <Marker
                 key={m.id}
