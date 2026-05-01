@@ -338,27 +338,27 @@ Static checks.
 
 ### Task 4.1 — Re-enable zoom controls
 
-- [ ] Import `ZoomControl` from `react-leaflet`
-- [ ] In `<MapContainer>` keep `zoomControl={false}` (default position is top-right; we want bottom-left)
-- [ ] Add `<ZoomControl position="bottomleft" />` as a child of `<MapContainer>`
+- [x] Import `ZoomControl` from `react-leaflet`
+- [x] In `<MapContainer>` keep `zoomControl={false}` (default position is top-right; we want bottom-left)
+- [x] Add `<ZoomControl position="bottomleft" />` as a child of `<MapContainer>`
 
 ### Task 4.2 — Recenter button
 
-- [ ] Custom component (similar to `ChangeView`) that exposes a `flyToUser` callback via a render prop OR uses `useMap` directly
-- [ ] Floating button (📍) that calls `map.flyTo([currentPosition.lat, currentPosition.lng], 17, { duration: 0.8 })`
-- [ ] Disabled state if `currentPosition === null` (greyed out, no-op)
-- [ ] Position: just above the zoom controls in the same column
+- [x] Custom component (similar to `ChangeView`) that exposes a `flyToUser` callback via a render prop OR uses `useMap` directly
+- [x] Floating button (📍) that calls `map.flyTo([currentPosition.lat, currentPosition.lng], 17, { duration: 0.8 })`
+- [x] Disabled state if `currentPosition === null` (greyed out, no-op)
+- [x] Position: just above the zoom controls in the same column
 
 ### Task 4.3 — Z-index / position cleanup
 
 Currently the satellite toggle (`bottom-[220px]`), distance card (`bottom-6`), and the new zoom + recenter buttons all use absolute positioning with magic offsets. This collides on phones.
 
-- [ ] Replace satellite toggle's standalone position with a `flex flex-col gap-2` stack at `absolute bottom-6 left-4 z-[400]` containing: satellite toggle (top), recenter (middle), zoom controls (bottom — note that ZoomControl renders itself, so wrap in a sibling or accept that it self-positions; if hard to combine, keep ZoomControl at default `bottomleft` and stack our custom buttons above it at `bottom-[120px]`)
-- [ ] Distance card stays at `bottom-6 left-4 right-4` but with `right-[80px]` on mobile (`md:right-4`) so it doesn't overlap the button stack
+- [x] Replace satellite toggle's standalone position with a `flex flex-col gap-2` stack at `absolute bottom-6 left-4 z-[400]` containing: satellite toggle (top), recenter (middle), zoom controls (bottom — note that ZoomControl renders itself, so wrap in a sibling or accept that it self-positions; if hard to combine, keep ZoomControl at default `bottomleft` and stack our custom buttons above it at `bottom-[120px]`)
+- [x] Distance card stays at `bottom-6 left-4 right-4` but with `right-[80px]` on mobile (`md:right-4`) so it doesn't overlap the button stack
 
 ### Task 4.4 — iOS compass fix
 
-- [ ] In `MapView.tsx:228-230`, replace the existing handler with:
+- [x] In `MapView.tsx:228-230`, replace the existing handler with:
 
 ```ts
 const handler = (e: DeviceOrientationEvent) => {
@@ -374,12 +374,12 @@ const handler = (e: DeviceOrientationEvent) => {
 };
 ```
 
-- [ ] Without this fix, on iOS the compass arrow rotates relative to the device's _initial_ orientation when the page loaded, not relative to true north
+- [x] Without this fix, on iOS the compass arrow rotates relative to the device's _initial_ orientation when the page loaded, not relative to true north
 
 ### Task 4.5 — Verify "מיקום משוער" badge stickiness
 
-- [ ] Trace the `gpsError` path: `useNavigation.ts:392` already calls `setGpsError(null)` on fresh position. Verify the badge in `MapView.tsx:407` actually disappears when GPS recovers.
-- [ ] If sticky, derive badge from a `currentPosition.timestamp` freshness check instead of `gpsError` truthiness
+- [x] Trace the `gpsError` path: `useNavigation.ts:392` already calls `setGpsError(null)` on fresh position. Verify the badge in `MapView.tsx:407` actually disappears when GPS recovers.
+- [x] If sticky, derive badge from a `currentPosition.timestamp` freshness check instead of `gpsError` truthiness
 
 ### Batch 4 QA Gate
 
@@ -556,6 +556,9 @@ docs/superpowers/plans/2026-05-02-mobile-creator-and-search.md
 - **Batch 3.2 — "חיפוש כתובת" implementation.** Plan said "opens an inline MapSearchControl (no map; just the search box)" — i.e. a separate search-then-open-map flow. Reality: the existing `MapSearchControl` component requires `useMap()` (so cannot be rendered standalone). To avoid duplicating ~200 lines of search logic, this batch instead opens the map immediately at the Israel-wide view and adds an `autoFocus` prop to `MapSearchControl` so the on-map search box is auto-focused when the user signaled search intent. UX result is similar (search → map opens at result), with one less screen transition. Documented as an intentional simplification. The `onSelect` callback on the map's search box now also updates `creatorArea` (so the area is persisted across reloads).
 - **Batch 3 — Removed `FALLBACK_POS` and `DEFAULT_LOCATION` import.** With the entry-screen flow, the geolocation effect no longer needs a hardcoded fallback — if GPS fails, `userPos` (the green dot) is simply `null` and not rendered. The `creatorArea` state covers map-center selection. Net: −1 lint error vs. baseline (47 vs 48) because the previous fallback `setUserPos(FALLBACK_POS)` in the error callback was a `react-hooks/set-state-in-effect` violation.
 - **Batch 3 — `setMissions([])` on "שנה אזור".** When the user resets the area, all in-progress missions are cleared. Reason: missions placed in one area are not portable to another (their lat/lng are wrong). Cleared along with `selectedIdx`, `sheetExpanded`, `savedAdventure`, and `shareUrl` for a clean restart. Saved adventures in localStorage are unaffected (those live under `adventures`, not the creator's transient state).
+- **Batch 4 — Recenter button rendered as sibling, not child of MapContainer.** First implementation made `RecenterButton` a `useMap()`-consuming child of `<MapContainer>`. Result: button rendered inside Leaflet's pane system with translate3d transforms, so `absolute bottom-[120px] left-2` positioned it at `top: -120` (above viewport). Fix: rendered the button as a sibling to `<MapContainer>` (in the wrapping div), and synced the `L.Map` instance to a `useRef` via a tiny `<MapRefSync>` child component that just calls `useMap()` and writes to the ref. Now button positioning is relative to the map wrapper div, and `handleRecenter` uses `mapRef.current.flyTo(...)`. Cleaner than fighting Leaflet's pane positioning.
+- **Batch 4 — No satellite toggle in `main`.** Plan Task 4.3 references "satellite toggle's standalone position" — this toggle exists only in the user's stash WIP, not in committed `main`. Implemented Task 4.3 with the components that DO exist: stack recenter button at `bottom-[120px] left-2` above ZoomControl (Leaflet's default `bottomleft` position). Distance-card overlap fix: changed bottom-overlay container from `left-4 right-4` to `left-[80px] md:left-4 right-4` so its physical-left edge clears the button stack on mobile. Plan said `right-[80px]` but the buttons are on the left, so the inset must be on the LEFT (this is a typo in the plan); documented and applied the correct fix.
+- **Batch 4.5 — Badge stickiness already correct.** The plan asked to verify whether `gpsError` truthiness sticks. Reading `useNavigation.ts:102`: `setGpsError(null)` is called on every fresh `handlePosition` invocation. So the badge auto-clears on GPS recovery. No code change needed; just verified by tracing the path.
 
 ## Blockers Encountered
 
