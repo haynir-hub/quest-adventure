@@ -187,10 +187,14 @@ export const MapView: React.FC<MapViewProps> = ({
 
   const isArrived = distanceToNext !== null && distanceToNext < 30;
 
-  // Trigger sound exactly once when arriving
+  // Trigger sound + vibration exactly once when arriving
   useEffect(() => {
     if (isArrived && !hasPlayedSound) {
       playSuccessSound();
+      // Vibrate if the device supports it (mobile browsers, often blocked on iOS Safari)
+      if (typeof navigator.vibrate === "function") {
+        navigator.vibrate([300, 100, 300, 100, 600]);
+      }
       setHasPlayedSound(true);
     } else if (!isArrived && hasPlayedSound) {
       // Reset if user walks away (unlikely but possible boundary edge case)
@@ -434,19 +438,36 @@ export const MapView: React.FC<MapViewProps> = ({
             )}
           </div>
         )}
-
-        {/* Arrived Action Button */}
-        {isArrived && nextMission && (
-          <div className="animate-bounce pointer-events-auto">
-            <button
-              onClick={onArrived}
-              className="w-full bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-bold py-4 px-8 rounded-full shadow-2xl text-2xl border-4 border-white transition-all min-h-[64px]"
-            >
-              הגעתי!
-            </button>
-          </div>
-        )}
       </div>
+
+      {/* Arrival feedback: full-screen alternating red/yellow flash + central bouncing CTA */}
+      {isArrived && nextMission && (
+        <>
+          <style>{`
+            @keyframes arrived-flash {
+              0%, 100% { background-color: rgba(34, 197, 94, 0); }
+              25% { background-color: rgba(239, 68, 68, 0.45); }
+              50% { background-color: rgba(34, 197, 94, 0); }
+              75% { background-color: rgba(250, 204, 21, 0.55); }
+            }
+            .arrived-flash { animation: arrived-flash 0.9s infinite; }
+          `}</style>
+          <div
+            className="fixed inset-0 z-[399] pointer-events-none arrived-flash"
+            aria-hidden="true"
+          />
+          {/* CTA — fixed near vertical center so it can never be cut off; safe-area aware */}
+          <button
+            onClick={onArrived}
+            className="fixed left-1/2 -translate-x-1/2 z-[600] bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-black py-6 px-10 rounded-full shadow-[0_0_50px_rgba(34,197,94,0.7)] text-3xl md:text-4xl border-[6px] border-white animate-bounce min-h-[88px] min-w-[220px] ring-4 ring-yellow-300/70"
+            style={{
+              bottom: "calc(env(safe-area-inset-bottom, 0px) + 7rem)",
+            }}
+          >
+            🎯 הגעתי!
+          </button>
+        </>
+      )}
     </div>
   );
 };

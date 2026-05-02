@@ -9,6 +9,7 @@ interface MissionScreenProps {
   worldId: string;
   theme: WorldTheme;
   onComplete: () => void;
+  onSkip?: () => void;
 }
 
 const MissionScreen: React.FC<MissionScreenProps> = ({
@@ -16,6 +17,7 @@ const MissionScreen: React.FC<MissionScreenProps> = ({
   worldId,
   theme,
   onComplete,
+  onSkip,
 }) => {
   const world = worldsData.find((w) => w.id === worldId) || worldsData[0];
 
@@ -87,13 +89,25 @@ const MissionScreen: React.FC<MissionScreenProps> = ({
 
   return (
     <div
-      className="flex flex-col items-center justify-between min-h-[100dvh] p-4 text-center select-none overflow-x-hidden"
+      className="flex flex-col items-center justify-between min-h-[100dvh] p-4 text-center select-none overflow-x-hidden relative"
       style={{
         backgroundColor: world.secondaryColor,
         color: "#ffffff", // Ensure text is readable
       }}
       dir="rtl"
     >
+      {/* Skip button — top-left, mirrors the global "חזרה" at top-right */}
+      {onSkip && (
+        <button
+          type="button"
+          onClick={onSkip}
+          className="fixed top-6 left-4 bg-white/90 backdrop-blur-md text-slate-700 px-4 py-2 rounded-full shadow-lg z-[100] flex items-center gap-1 hover:bg-white active:scale-95 transition-all text-sm font-bold border-2 border-slate-200/50 min-h-[44px]"
+          aria-label="דלג למשימה הבאה"
+        >
+          דלג <span>⏭</span>
+        </button>
+      )}
+
       {/* Header */}
       <div className="w-full mt-4 md:mt-8 flex flex-col items-center">
         <div

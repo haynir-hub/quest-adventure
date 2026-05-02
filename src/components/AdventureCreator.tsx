@@ -402,7 +402,7 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
         </button>
 
         <div className="flex items-center justify-between px-5 py-4 bg-slate-50 border-b border-slate-200">
-          <div>
+          <div className="min-w-0 flex-1">
             <h2 className="text-lg font-bold text-slate-800">
               {theme?.missionPointName ?? "נקודות"}
             </h2>
@@ -411,10 +411,18 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
                 ? `${missions.length} נקודות • לחץ על המפה להוספת`
                 : "לחץ על המפה להוספת נקודה"}
             </p>
+            <button
+              type="button"
+              onClick={handleChangeArea}
+              className="text-xs text-blue-600 hover:text-blue-800 underline mt-1 font-medium"
+            >
+              🗺️ שנה אזור
+            </button>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 text-xl font-bold w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100"
+            className="text-slate-400 hover:text-slate-700 text-xl font-bold w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100 shrink-0"
+            aria-label="סגור"
           >
             ✕
           </button>
@@ -688,15 +696,6 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
             setAutoFocusSearch(false);
           }}
         />
-
-        <button
-          type="button"
-          onClick={handleChangeArea}
-          className="absolute top-3 right-3 z-[500] bg-white/95 hover:bg-white text-slate-700 text-xs font-bold px-3 py-2 rounded-xl shadow-md border border-slate-200 min-h-[44px] min-w-[44px] flex items-center gap-1"
-          aria-label="שנה אזור"
-        >
-          🗺️ שנה אזור
-        </button>
 
         {missions.length === 0 && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-sm font-bold px-5 py-3 rounded-full shadow-xl animate-bounce pointer-events-none">

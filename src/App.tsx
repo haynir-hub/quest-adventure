@@ -224,13 +224,22 @@ function App() {
     if (!gameState || !currentAdventure) return;
     const isLast =
       gameState.currentMissionIndex >= currentAdventure.missions.length - 1;
+    const currentId =
+      currentAdventure.missions[gameState.currentMissionIndex]?.id;
     if (isLast) {
       setAppState(AppState.FINISH);
     } else {
       setGameState((prev) => {
         if (!prev) return prev;
-        return { ...prev, currentMissionIndex: prev.currentMissionIndex + 1 };
+        return {
+          ...prev,
+          currentMissionIndex: prev.currentMissionIndex + 1,
+          completedMissions: currentId
+            ? [...prev.completedMissions, currentId]
+            : prev.completedMissions,
+        };
       });
+      setAppState(AppState.NAVIGATION);
     }
   };
 
@@ -667,6 +676,7 @@ function App() {
             worldId={currentAdventure.worldId}
             theme={theme}
             onComplete={handleMissionComplete}
+            onSkip={handleSkipMission}
           />
         ) : null;
       }
@@ -791,18 +801,16 @@ function App() {
       )}
 
       {/* Global Back Button (RTL top right) */}
-      {appState !== AppState.HOME &&
-        appState !== AppState.FINISH &&
-        appState !== AppState.CREATOR && (
-          <button
-            onClick={handleBack}
-            className="fixed top-6 right-6 bg-white/90 backdrop-blur-md text-slate-800 px-4 py-2 rounded-full shadow-lg z-[100] flex items-center justify-center hover:bg-white active:scale-95 transition-all text-lg font-bold border-2 border-slate-200/50"
-            aria-label="חזרה"
-            dir="rtl"
-          >
-            <span className="mr-2">&rarr;</span> חזרה
-          </button>
-        )}
+      {appState !== AppState.HOME && appState !== AppState.FINISH && (
+        <button
+          onClick={handleBack}
+          className="fixed top-6 right-6 bg-white/90 backdrop-blur-md text-slate-800 px-4 py-2 rounded-full shadow-lg z-[100] flex items-center justify-center hover:bg-white active:scale-95 transition-all text-lg font-bold border-2 border-slate-200/50"
+          aria-label="חזרה"
+          dir="rtl"
+        >
+          <span className="mr-2">&rarr;</span> חזרה
+        </button>
+      )}
 
       {/* Floating Action Button for Trainer (Only on HOME page) */}
       {appState === AppState.HOME && (
