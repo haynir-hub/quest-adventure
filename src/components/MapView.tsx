@@ -5,6 +5,7 @@ import {
   Marker,
   Popup,
   useMap,
+  useMapEvents,
   Polyline,
   ZoomControl,
 } from "react-leaflet";
@@ -39,14 +40,29 @@ interface MapViewProps {
   gpsError?: string | null;
 }
 
-// Custom hook/component to update map center when user location changes
-function ChangeView({ center }: { center: [number, number] | null }) {
+// Auto-follow GPS only while `follow` is true. The first render with a center
+// re-uses the last user-driven zoom (default 16 from MapContainer).
+function ChangeView({
+  center,
+  follow,
+}: {
+  center: [number, number] | null;
+  follow: boolean;
+}) {
   const map = useMap();
   useEffect(() => {
-    if (center) {
+    if (center && follow) {
       map.setView(center, map.getZoom());
     }
-  }, [center, map]);
+  }, [center, map, follow]);
+  return null;
+}
+
+// User pans → break auto-follow. Recenter button restores it.
+function FollowDisabler({ onUserPan }: { onUserPan: () => void }) {
+  useMapEvents({
+    dragstart: () => onUserPan(),
+  });
   return null;
 }
 
@@ -79,6 +95,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const [gpsErrorDismissed, setGpsErrorDismissed] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [deviceHeading, setDeviceHeading] = React.useState<number | null>(null);
+  const [followGps, setFollowGps] = React.useState(true);
   const mapRef = React.useRef<L.Map | null>(null);
 
   const handleRecenter = () => {
@@ -86,6 +103,7 @@ export const MapView: React.FC<MapViewProps> = ({
       mapRef.current.flyTo([currentPosition.lat, currentPosition.lng], 17, {
         duration: 0.8,
       });
+      setFollowGps(true);
     }
   };
 
@@ -278,10 +296,11 @@ export const MapView: React.FC<MapViewProps> = ({
                 ? [currentPosition.lat, currentPosition.lng]
                 : null
             }
+            follow={followGps}
           />
+          <FollowDisabler onUserPan={() => setFollowGps(false)} />
           <ZoomControl position="bottomleft" />
           <MapRefSync mapRef={mapRef} />
-          <MapSearchControl />
 
           {/* User Location Marker */}
           <Marker
@@ -317,6 +336,9 @@ export const MapView: React.FC<MapViewProps> = ({
             </Marker>
           ))}
         </MapContainer>
+
+        {/* Search control — rendered outside MapContainer so its dropdown can extend beyond the map (Leaflet panes are overflow:hidden) */}
+        <MapSearchControl mapRef={mapRef} />
 
         {/* Recenter button — rendered as sibling to MapContainer so it's positioned against the map wrapper, not inside Leaflet's panes */}
         <button

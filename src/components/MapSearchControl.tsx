@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useMap } from "react-leaflet";
+import type L from "leaflet";
 
 const RECENT_KEY = "quest_recent_searches";
 const MAX_RECENT = 5;
@@ -18,6 +18,7 @@ interface RecentSearch {
 }
 
 interface MapSearchControlProps {
+  mapRef: React.RefObject<L.Map | null>;
   onSelect?: (lat: number, lng: number, displayName: string) => void;
   placeholder?: string;
   autoFocus?: boolean;
@@ -53,11 +54,11 @@ const saveRecent = (entry: RecentSearch) => {
 };
 
 export const MapSearchControl: React.FC<MapSearchControlProps> = ({
+  mapRef,
   onSelect,
   placeholder = "חפש כתובת או מיקום בישראל...",
   autoFocus = false,
 }) => {
-  const map = useMap();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<NominatimResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -114,7 +115,7 @@ export const MapSearchControl: React.FC<MapSearchControlProps> = ({
   }, [query]);
 
   const handleSelect = (lat: number, lng: number, name: string) => {
-    map.flyTo([lat, lng], 17, { duration: 1.0 });
+    mapRef.current?.flyTo([lat, lng], 17, { duration: 1.0 });
     saveRecent({ name, lat, lng });
     setRecent(loadRecent());
     setQuery("");

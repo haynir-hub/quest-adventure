@@ -66,6 +66,21 @@ const InvalidateSize = () => {
   return null;
 };
 
+const MapRefSync = ({
+  mapRef,
+}: {
+  mapRef: React.MutableRefObject<L.Map | null>;
+}) => {
+  const map = useMap();
+  useEffect(() => {
+    mapRef.current = map;
+    return () => {
+      mapRef.current = null;
+    };
+  }, [map, mapRef]);
+  return null;
+};
+
 const createNumberedIcon = (n: number) =>
   L.divIcon({
     className: "",
@@ -126,6 +141,7 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
   const [autoFocusSearch, setAutoFocusSearch] = useState(false);
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
   const prevMissionsRef = useRef(missions);
+  const mapRef = useRef<L.Map | null>(null);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -368,9 +384,10 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
       dir="rtl"
     >
       {/* SIDEBAR (desktop) / BOTTOM SHEET (mobile) */}
+      {/* Expanded mobile height kept at 55vh (not 80vh) so the map stays usable while editing a marker. */}
       <div
         className={`order-2 md:order-none w-full md:w-[360px] md:min-w-[320px] flex flex-col bg-white border-t md:border-t-0 md:border-l border-slate-200 shadow-xl overflow-hidden transition-[max-height] duration-300 ease-out md:max-h-none ${
-          sheetExpanded ? "max-h-[80vh]" : "max-h-[140px]"
+          sheetExpanded ? "max-h-[55vh]" : "max-h-[140px]"
         }`}
       >
         {/* Drag handle (mobile only) */}
@@ -648,13 +665,7 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
           <InvalidateSize />
           <FlyToUser center={mapCenter} />
           <MapClickHandler onMapClick={handleMapClick} />
-          <MapSearchControl
-            autoFocus={autoFocusSearch}
-            onSelect={(lat, lng, name) => {
-              setCreatorArea({ lat, lng, name });
-              setAutoFocusSearch(false);
-            }}
-          />
+          <MapRefSync mapRef={mapRef} />
           {userPos && (
             <Marker position={userPos} icon={userIcon} interactive={false} />
           )}
@@ -667,6 +678,16 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
             />
           ))}
         </MapContainer>
+
+        {/* Search control rendered outside MapContainer so its dropdown can extend beyond the map (Leaflet panes are overflow:hidden) */}
+        <MapSearchControl
+          mapRef={mapRef}
+          autoFocus={autoFocusSearch}
+          onSelect={(lat, lng, name) => {
+            setCreatorArea({ lat, lng, name });
+            setAutoFocusSearch(false);
+          }}
+        />
 
         <button
           type="button"
