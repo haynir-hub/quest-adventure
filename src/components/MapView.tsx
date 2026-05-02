@@ -96,6 +96,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [deviceHeading, setDeviceHeading] = React.useState<number | null>(null);
   const [followGps, setFollowGps] = React.useState(true);
+  const [previewIndex, setPreviewIndex] = React.useState<number | null>(null);
   const mapRef = React.useRef<L.Map | null>(null);
 
   const handleRecenter = () => {
@@ -245,6 +246,18 @@ export const MapView: React.FC<MapViewProps> = ({
 
   return (
     <div className="absolute inset-0 flex flex-col z-0" dir="rtl">
+      {/* Skip button — top-left, mirrors global "חזרה" at top-right */}
+      {onSkip && (
+        <button
+          type="button"
+          onClick={onSkip}
+          className="fixed top-6 left-4 bg-white/90 backdrop-blur-md text-slate-700 px-4 py-2 rounded-full shadow-lg z-[100] flex items-center gap-1 hover:bg-white active:scale-95 transition-all text-sm font-bold border-2 border-slate-200/50 min-h-[44px]"
+          aria-label="דלג למשימה הבאה"
+        >
+          דלג <span>⏭</span>
+        </button>
+      )}
+
       {/* GPS Error Banner */}
       {gpsError && !gpsErrorDismissed && (
         <div className="flex items-center justify-between gap-2 bg-orange-500 text-white px-4 py-2 text-sm font-medium z-[500] shrink-0">
@@ -314,7 +327,7 @@ export const MapView: React.FC<MapViewProps> = ({
             <Popup>אתם כאן!</Popup>
           </Marker>
 
-          {/* Mission Markers */}
+          {/* Mission Markers — clicking opens a big preview modal (any mission, active or not) */}
           {missions.map((mission, index) => (
             <Marker
               key={mission.id}
@@ -326,18 +339,10 @@ export const MapView: React.FC<MapViewProps> = ({
                 mission.emoji,
                 mission.imageUrl,
               )}
-            >
-              <Popup>
-                <div className="text-center" dir="rtl">
-                  <strong>
-                    משימה {index + 1}: {mission.title}
-                  </strong>
-                  {index < currentMissionIndex && (
-                    <p className="text-green-600 mt-1">הושלם ✓</p>
-                  )}
-                </div>
-              </Popup>
-            </Marker>
+              eventHandlers={{
+                click: () => setPreviewIndex(index),
+              }}
+            />
           ))}
         </MapContainer>
 
@@ -467,6 +472,55 @@ export const MapView: React.FC<MapViewProps> = ({
             🎯 הגעתי!
           </button>
         </>
+      )}
+
+      {/* Mission preview modal — opens when any mission marker is tapped */}
+      {previewIndex !== null && missions[previewIndex] && (
+        <div
+          className="fixed inset-0 z-[700] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6"
+          onClick={() => setPreviewIndex(null)}
+          dir="rtl"
+        >
+          <div
+            className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setPreviewIndex(null)}
+              className="absolute top-3 left-3 text-slate-400 hover:text-slate-700 text-2xl font-bold w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100"
+              aria-label="סגור"
+            >
+              ✕
+            </button>
+            <div className="text-center pt-2">
+              <div className="text-xs font-bold text-slate-400 mb-1 tracking-wide">
+                משימה {previewIndex + 1} מתוך {missions.length}
+                {previewIndex < currentMissionIndex && " • הושלמה ✓"}
+                {previewIndex === currentMissionIndex && " • פעילה כעת"}
+              </div>
+              {missions[previewIndex].imageUrl ? (
+                <img
+                  src={assetUrl(missions[previewIndex].imageUrl as string)}
+                  alt={missions[previewIndex].title}
+                  className="w-48 h-48 md:w-56 md:h-56 object-contain mx-auto my-4 drop-shadow-xl"
+                />
+              ) : (
+                <div className="text-9xl my-6">
+                  {missions[previewIndex].emoji || "📍"}
+                </div>
+              )}
+              <h2 className="text-2xl font-black text-slate-800 mb-2">
+                {missions[previewIndex].title}
+              </h2>
+              {missions[previewIndex].description && (
+                <p className="text-slate-600 text-sm">
+                  {missions[previewIndex].description}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -38,7 +38,7 @@ export default defineConfig(({ command }) => ({
         ],
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MiB — covers large character PNGs
+        maximumFileSizeToCacheInBytes: 20 * 1024 * 1024, // 20 MiB — accommodates very large untracked character PNGs (poppy-playtime)
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff,woff2,ttf}"],
         runtimeCaching: [
           {
