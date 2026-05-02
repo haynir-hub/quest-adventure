@@ -94,6 +94,401 @@ export const worldThemes: Record<string, WorldTheme> = {
     entityLabel: "איזה פוקימון תרצו לתפוס?",
     catchItemImage: "/images/ui_pokeball.png",
   },
+  poppy: {
+    adventureIntro:
+      "ברוכים הבאים למפעל פלייטיים-קו. שמרו על שקט - לא כל הדמויות פה ידידותיות...",
+    missionPointName: "תחנה",
+    missionWrapper: (desc: string, amount: number | string) =>
+      `כדי להמשיך לתחנה הבאה, השלימו ${amount} ${desc} בלי שיתפסו אתכם!`,
+    rewardText: "טוקן GrabPack",
+    rewardEmoji: "🧸",
+    characterName: "החוקר",
+    missionEntities: [
+      // Chapter 1
+      {
+        name: "פופי פלייטיים",
+        emoji: "🎀",
+        imageUrl: "/images/poppy-playtime/poppy_poppy-playtime.png",
+      },
+      {
+        name: "האגי וואגי",
+        emoji: "🧸",
+        imageUrl: "/images/poppy-playtime/poppy_huggy-wuggy.png",
+      },
+      {
+        name: "קאט-בי",
+        emoji: "🐝",
+        imageUrl: "/images/poppy-playtime/poppy_cat-bee.png",
+      },
+      {
+        name: "קנדי קאט",
+        emoji: "🍬",
+        imageUrl: "/images/poppy-playtime/poppy_candy-cat.png",
+      },
+      {
+        name: "בוגי בוט",
+        emoji: "🤖",
+        imageUrl: "/images/poppy-playtime/poppy_boogie-bot.png",
+      },
+      {
+        name: "ברון",
+        emoji: "🦕",
+        imageUrl: "/images/poppy-playtime/poppy_bron.png",
+      },
+      // Chapter 2
+      {
+        name: "מאמי לונג לגז",
+        emoji: "🕷️",
+        imageUrl: "/images/poppy-playtime/poppy_mommy-long-legs.png",
+      },
+      {
+        name: "קיסי מיסי",
+        emoji: "💗",
+        imageUrl: "/images/poppy-playtime/poppy_kissy-missy.png",
+      },
+      {
+        name: "באנזו באני",
+        emoji: "🐰",
+        imageUrl: "/images/poppy-playtime/poppy_bunzo-bunny.png",
+      },
+      {
+        name: "מיני האגיז",
+        emoji: "👶",
+        imageUrl: "/images/poppy-playtime/poppy_mini-huggies.png",
+      },
+      {
+        name: "פי-ג׳יי פאג-א-פילר",
+        emoji: "🐛",
+        imageUrl: "/images/poppy-playtime/poppy_pj-pug-a-pillar.png",
+      },
+      {
+        name: "בארי",
+        emoji: "🛒",
+        imageUrl: "/images/poppy-playtime/poppy_barry.png",
+      },
+      {
+        name: "דייזי",
+        emoji: "🌸",
+        imageUrl: "/images/poppy-playtime/poppy_daisy.png",
+      },
+      {
+        name: "דאדי לונג לגז",
+        emoji: "🕸️",
+        imageUrl: "/images/poppy-playtime/poppy_daddy-long-legs.png",
+      },
+      {
+        name: "בייבי לונג לגז",
+        emoji: "👶",
+        imageUrl: "/images/poppy-playtime/poppy_baby-long-legs.png",
+      },
+      {
+        name: "פטיט פוץ׳",
+        emoji: "🐶",
+        imageUrl: "/images/poppy-playtime/poppy_petite-pooch.png",
+      },
+      // Rejected toys
+      {
+        name: "סר פופס-א-לוט",
+        emoji: "🚽",
+        imageUrl: "/images/poppy-playtime/poppy_sir-poops-a-lot.png",
+      },
+      {
+        name: "קיק-מי פול",
+        emoji: "👟",
+        imageUrl: "/images/poppy-playtime/poppy_kick-me-paul.png",
+      },
+      {
+        name: "אוון התנור",
+        emoji: "🔥",
+        imageUrl: "/images/poppy-playtime/poppy_owen-the-oven.png",
+      },
+      {
+        name: "פט סטון",
+        emoji: "🪨",
+        imageUrl: "/images/poppy-playtime/poppy_pet-stone.png",
+      },
+      {
+        name: "סאני באדי",
+        emoji: "🌻",
+        imageUrl: "/images/poppy-playtime/poppy_sunni-buddi.png",
+      },
+      {
+        name: "חבית של האגיז",
+        emoji: "🛢️",
+        imageUrl: "/images/poppy-playtime/poppy_barrel-o-huggys.png",
+      },
+      {
+        name: "ארנב הפתעה",
+        emoji: "🥚",
+        imageUrl: "/images/poppy-playtime/poppy_surprise-hare.png",
+      },
+      {
+        name: "לאב באג",
+        emoji: "🦋",
+        imageUrl: "/images/poppy-playtime/poppy_love-bug.png",
+      },
+      // Chapter 3 — Smiling Critters
+      {
+        name: "קאטנאפ",
+        emoji: "😼",
+        imageUrl: "/images/poppy-playtime/poppy_catnap.png",
+      },
+      {
+        name: "דוגדיי",
+        emoji: "🐕",
+        imageUrl: "/images/poppy-playtime/poppy_dogday.png",
+      },
+      {
+        name: "קיקין צ׳יקן",
+        emoji: "🐔",
+        imageUrl: "/images/poppy-playtime/poppy_kickinchicken.png",
+      },
+      {
+        name: "קראפטיקורן",
+        emoji: "🦄",
+        imageUrl: "/images/poppy-playtime/poppy_craftycorn.png",
+      },
+      {
+        name: "בובא בובאפנט",
+        emoji: "🐘",
+        imageUrl: "/images/poppy-playtime/poppy_bubba-bubbaphant.png",
+      },
+      {
+        name: "בובי בירהאג",
+        emoji: "🐻",
+        imageUrl: "/images/poppy-playtime/poppy_bobby-bearhug.png",
+      },
+      {
+        name: "פיקי פיגי",
+        emoji: "🐷",
+        imageUrl: "/images/poppy-playtime/poppy_picky-piggy.png",
+      },
+      {
+        name: "הופי הופסקוץ׳",
+        emoji: "🐰",
+        imageUrl: "/images/poppy-playtime/poppy_hoppy-hopscotch.png",
+      },
+      {
+        name: "קריטרים הרוסים",
+        emoji: "💀",
+        imageUrl: "/images/poppy-playtime/poppy_ruined-critters.png",
+      },
+      {
+        name: "הפרוטוטיפ",
+        emoji: "🦾",
+        imageUrl: "/images/poppy-playtime/poppy_the-prototype.png",
+      },
+      {
+        name: "מיס דילייט",
+        emoji: "👩‍🏫",
+        imageUrl: "/images/poppy-playtime/poppy_miss-delight.png",
+      },
+      // Chapter 4 — Safe Haven
+      {
+        name: "דואי הדואמן",
+        emoji: "🥖",
+        imageUrl: "/images/poppy-playtime/poppy_doey-the-doughman.png",
+      },
+      {
+        name: "ד״ר הארלי סאוייר",
+        emoji: "🥽",
+        imageUrl: "/images/poppy-playtime/poppy_dr-harley-sawyer.png",
+      },
+      {
+        name: "יארנאבי",
+        emoji: "🦁",
+        imageUrl: "/images/poppy-playtime/poppy_yarnaby.png",
+      },
+      {
+        name: "פיאנוזאורוס",
+        emoji: "🎹",
+        imageUrl: "/images/poppy-playtime/poppy_pianosaurus.png",
+      },
+      // Nightmare Critters
+      {
+        name: "באבא צ׳ופס",
+        emoji: "🦷",
+        imageUrl: "/images/poppy-playtime/poppy_baba-chops.png",
+      },
+      {
+        name: "איקי ליקי",
+        emoji: "👅",
+        imageUrl: "/images/poppy-playtime/poppy_icky-licky.png",
+      },
+      {
+        name: "רייבי בייבי",
+        emoji: "👶",
+        imageUrl: "/images/poppy-playtime/poppy_rabie-baby.png",
+      },
+      {
+        name: "אליסטר גייטור",
+        emoji: "🐊",
+        imageUrl: "/images/poppy-playtime/poppy_allister-gator.png",
+      },
+      {
+        name: "סיימון סמוק",
+        emoji: "💨",
+        imageUrl: "/images/poppy-playtime/poppy_simon-smoke.png",
+      },
+      {
+        name: "פו",
+        emoji: "🐦‍⬛",
+        imageUrl: "/images/poppy-playtime/poppy_poe.png",
+      },
+      {
+        name: "טואיי",
+        emoji: "🍳",
+        imageUrl: "/images/poppy-playtime/poppy_touille.png",
+      },
+      {
+        name: "מאגי מאקו",
+        emoji: "🦈",
+        imageUrl: "/images/poppy-playtime/poppy_maggie-mako.png",
+      },
+      // Chapter 5 — Broken Things
+      {
+        name: "גיבלט",
+        emoji: "🦃",
+        imageUrl: "/images/poppy-playtime/poppy_giblet.png",
+      },
+      {
+        name: "צ׳אם צ׳ומפקינז",
+        emoji: "🐡",
+        imageUrl: "/images/poppy-playtime/poppy_chum-chompkins.png",
+      },
+      {
+        name: "לילי לאבברייד",
+        emoji: "👧",
+        imageUrl: "/images/poppy-playtime/poppy_lily-lovebraids.png",
+      },
+      // Wrongside Outimals
+      {
+        name: "באבי צ׳אמז",
+        emoji: "🍭",
+        imageUrl: "/images/poppy-playtime/poppy_bubby-chumz.png",
+      },
+      {
+        name: "בלנקי בלאנקז",
+        emoji: "🛏️",
+        imageUrl: "/images/poppy-playtime/poppy_blanky-blankz.png",
+      },
+      {
+        name: "דודל בונס",
+        emoji: "🦴",
+        imageUrl: "/images/poppy-playtime/poppy_doodle-bones.png",
+      },
+      {
+        name: "בינדל בוגי",
+        emoji: "🎒",
+        imageUrl: "/images/poppy-playtime/poppy_bindle-boogie.png",
+      },
+      {
+        name: "גובר גאטז",
+        emoji: "👽",
+        imageUrl: "/images/poppy-playtime/poppy_goober-gutz.png",
+      },
+      {
+        name: "דיזי בובו",
+        emoji: "💫",
+        imageUrl: "/images/poppy-playtime/poppy_dizzy-booboo.png",
+      },
+      {
+        name: "לופסי נודל",
+        emoji: "🍜",
+        imageUrl: "/images/poppy-playtime/poppy_loopsy-noodle.png",
+      },
+      {
+        name: "אאוטימלים הפוכים",
+        emoji: "🔄",
+        imageUrl: "/images/poppy-playtime/poppy_wrongside-outimals.png",
+      },
+      // Project: Playtime
+      {
+        name: "בוקסי בו",
+        emoji: "📦",
+        imageUrl: "/images/poppy-playtime/poppy_boxy-boo.png",
+      },
+      // Human staff
+      {
+        name: "אליוט לודוויג",
+        emoji: "👨‍💼",
+        imageUrl: "/images/poppy-playtime/poppy_elliot-ludwig.png",
+      },
+      {
+        name: "לית׳ פייר",
+        emoji: "🕴️",
+        imageUrl: "/images/poppy-playtime/poppy_leith-pierre.png",
+      },
+      {
+        name: "סטלה גרייבר",
+        emoji: "👩",
+        imageUrl: "/images/poppy-playtime/poppy_stella-greyber.png",
+      },
+      {
+        name: "ריצ׳רד לוביץ",
+        emoji: "📦",
+        imageUrl: "/images/poppy-playtime/poppy_richard-lovitz.png",
+      },
+      {
+        name: "רואן סטול",
+        emoji: "💻",
+        imageUrl: "/images/poppy-playtime/poppy_rowan-stoll.png",
+      },
+      // Test subjects
+      {
+        name: "תומאס קלארק",
+        emoji: "🩺",
+        imageUrl: "/images/poppy-playtime/poppy_thomas-clarke.png",
+      },
+      {
+        name: "מארי פיין",
+        emoji: "👩‍👧",
+        imageUrl: "/images/poppy-playtime/poppy_marie-payne.png",
+      },
+      {
+        name: "תיאודור גרמבל",
+        emoji: "👦",
+        imageUrl: "/images/poppy-playtime/poppy_theodore-grambell.png",
+      },
+      {
+        name: "קווין נווידסון",
+        emoji: "🧒",
+        imageUrl: "/images/poppy-playtime/poppy_quinn-navidson.png",
+      },
+      {
+        name: "גרייסי גרין",
+        emoji: "🎬",
+        imageUrl: "/images/poppy-playtime/poppy_gracie-green.png",
+      },
+      {
+        name: "ג׳ק אאיירס",
+        emoji: "👦",
+        imageUrl: "/images/poppy-playtime/poppy_jack-ayers.png",
+      },
+      {
+        name: "קווין בארנס",
+        emoji: "👦",
+        imageUrl: "/images/poppy-playtime/poppy_kevin-barnes.png",
+      },
+      {
+        name: "מתיו הלרד",
+        emoji: "👦",
+        imageUrl: "/images/poppy-playtime/poppy_matthew-hallard.png",
+      },
+      {
+        name: "מיקאלה היסופ",
+        emoji: "👧",
+        imageUrl: "/images/poppy-playtime/poppy_makayla-hyssop.png",
+      },
+      {
+        name: "ריילי",
+        emoji: "📓",
+        imageUrl: "/images/poppy-playtime/poppy_riley.png",
+      },
+    ],
+    entityLabel: "איזו דמות תפגוש בנקודה זו?",
+    catchItemEmoji: "🦋",
+  },
   treasures: {
     adventureIntro: "אהוי מאטי! מפת האוצר מראה שהשלל נמצא ממש קרוב!",
     missionPointName: "סימן",
