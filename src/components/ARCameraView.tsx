@@ -21,6 +21,10 @@ export const ARCameraView: React.FC<ARCameraViewProps> = ({
   // Get the world's catch item
   const theme = worldThemes[worldId === "treasure" ? "treasures" : worldId];
   const catchItemImage = theme?.catchItemImage;
+
+  const characterEntity = theme?.missionEntities?.find(
+    (e) => e.imageUrl === mission.imageUrl,
+  );
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -132,11 +136,21 @@ export const ARCameraView: React.FC<ARCameraViewProps> = ({
 
       {/* Title / Instructions Overlay */}
       <div className="absolute top-12 left-0 right-0 z-10 text-center pointer-events-none px-4">
-        <div className="inline-block bg-black/60 backdrop-blur-md rounded-2xl p-4 text-white shadow-xl border border-white/20 animate-pulse">
-          <h2 className="text-2xl font-black mb-1">מצאתם את המשימה!</h2>
-          <p className="font-bold text-lg text-green-300">
-            תפסו את ה{displayEmoji} כדי להתחיל
-          </p>
+        <div className="inline-block bg-black/60 backdrop-blur-md rounded-2xl p-4 text-white shadow-xl border border-white/20 animate-pulse max-w-xs mx-auto">
+          <h2 className="text-2xl font-black mb-1">
+            {characterEntity
+              ? `פגשתם את ${characterEntity.name}!`
+              : "מצאתם את המשימה!"}
+          </h2>
+          {characterEntity?.description ? (
+            <p className="text-sm text-yellow-200 leading-snug">
+              {characterEntity.description}
+            </p>
+          ) : (
+            <p className="font-bold text-lg text-green-300">
+              תפסו את ה{displayEmoji} כדי להתחיל
+            </p>
+          )}
         </div>
       </div>
 

@@ -504,17 +504,31 @@ const AdventureCreator: React.FC<AdventureCreatorProps> = ({ onClose }) => {
                             (en) => en.name === name,
                           );
                           if (!entity) return;
-                          const actionPrefix =
-                            worldId === "pokemon"
-                              ? "תפיסת"
-                              : worldId === "mario"
-                                ? "איסוף/הבסת"
-                                : "מציאת";
-                          updateMissionField(
-                            i,
-                            "title",
-                            `${actionPrefix} ${name}`,
-                          );
+                          if (worldId === "doctor") {
+                            // אימה אנלוגית — שם היצור נכנס גם לכותרת וגם לתיאור,
+                            // כך שכל הטקסטים במשחק מתאימים לדמות שנבחרה.
+                            updateMissionField(i, "title", `בריחה מ${name}`);
+                            updateMissionField(
+                              i,
+                              "description",
+                              `${name} מתקרב מבעד למסך — אל תיתן לו לתפוס אותך!`,
+                            );
+                          } else {
+                            const actionPrefix =
+                              worldId === "pokemon"
+                                ? "תפיסת"
+                                : worldId === "mario"
+                                  ? "איסוף/הבסת"
+                                  : worldId === "fnaf"
+                                    ? "בריחה מ"
+                                    : "מציאת";
+                            const sep = actionPrefix.endsWith("מ") ? "" : " ";
+                            updateMissionField(
+                              i,
+                              "title",
+                              `${actionPrefix}${sep}${name}`,
+                            );
+                          }
                           updateMissionField(i, "emoji", entity.emoji);
                           if (entity.imageUrl)
                             updateMissionField(i, "imageUrl", entity.imageUrl);
