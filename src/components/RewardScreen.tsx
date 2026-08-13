@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { worldsData } from "../worlds/worldsData";
+import { HaiGagAnimation } from "./HaiGagAnimation";
+import { nextHaiGag, type HaiGagId } from "../utils/haiGags";
 
 interface RewardScreenProps {
   worldId: string;
@@ -100,6 +102,19 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({
   const world = worldsData.find((w) => w.id === worldId) || worldsData[0];
   const [confetti, setConfetti] = useState<any[]>([]);
 
+  // בעולם Doctor Nowhere: בסוף כל משימה קורה לחי משהו אחר.
+  // הבחירה נעשית פעם אחת בטעינת המסך — ה-ref מונע קידום כפול של המונה
+  // ב-StrictMode, ששם את ה-effect פעמיים בפיתוח.
+  const showHaiGag = worldId === "doctor";
+  const [haiGag, setHaiGag] = useState<HaiGagId | null>(null);
+  const haiGagPicked = useRef(false);
+
+  useEffect(() => {
+    if (!showHaiGag || haiGagPicked.current) return;
+    haiGagPicked.current = true;
+    setHaiGag(nextHaiGag());
+  }, [showHaiGag]);
+
   useEffect(() => {
     // Generate confetti matching the world colors
     const colors = [
@@ -163,12 +178,16 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({
         className="relative z-10 w-full max-w-md p-6 md:p-8 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col items-center gap-4 md:gap-6 border-4 mx-4"
         style={{ borderColor: world.secondaryColor }}
       >
-        <div
-          className="text-7xl md:text-9xl filter drop-shadow-xl animate-[bounce-custom_3s_ease-in-out_infinite]"
-          style={{ filter: `drop-shadow(0 0 20px ${world.secondaryColor})` }}
-        >
-          {world.emoji}
-        </div>
+        {showHaiGag && haiGag ? (
+          <HaiGagAnimation gagId={haiGag} />
+        ) : (
+          <div
+            className="text-7xl md:text-9xl filter drop-shadow-xl animate-[bounce-custom_3s_ease-in-out_infinite]"
+            style={{ filter: `drop-shadow(0 0 20px ${world.secondaryColor})` }}
+          >
+            {world.emoji}
+          </div>
+        )}
 
         {isLastMission ? (
           <>
@@ -185,9 +204,12 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({
           </>
         ) : (
           <>
-            <h1 className="text-3xl font-black text-gray-800">
-              {achievementText}
-            </h1>
+            {/* כשהגאג של חי מוצג, הכיתוב שלו הוא הכותרת — בלי כותרת כפולה */}
+            {!(showHaiGag && haiGag) && (
+              <h1 className="text-3xl font-black text-gray-800">
+                {achievementText}
+              </h1>
+            )}
             <div className="w-full bg-gray-200 rounded-full h-6 mt-4 overflow-hidden border-2 border-gray-300 relative shadow-inner">
               <div
                 className="h-full transition-all duration-1000 ease-out flex items-center justify-end pr-2 text-xs font-bold text-white shadow-md relative"
