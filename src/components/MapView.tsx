@@ -111,6 +111,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const world = worldsData.find((w) => w.id === worldId);
   const worldEmoji = world?.emoji || "📍";
   const worldColor = world?.primaryColor || "#3B82F6";
+  const isDoctorWorld = worldId === "doctor";
 
   const distanceToNext =
     currentPosition && nextMission
@@ -145,37 +146,29 @@ export const MapView: React.FC<MapViewProps> = ({
 
     const displayEmoji = missionEmoji || worldEmoji;
 
-    let bgColor = "#9CA3AF"; // Gray for future
-    let emojiScale = "scale-100";
-    let grayscaleClass = "grayscale opacity-70";
+    let markerState = "mission-marker--future";
 
     if (isCurrent) {
-      bgColor = worldColor;
-      emojiScale = "scale-125";
-      grayscaleClass = ""; // Full color
+      markerState = "mission-marker--current";
     } else if (isCompleted) {
-      bgColor = "#10B981"; // Green for completed
-      grayscaleClass = "opacity-80"; // Still slightly dimmed but green
+      markerState = "mission-marker--completed";
     }
 
     const iconContent = missionImageUrl
-      ? `<img src="${assetUrl(missionImageUrl)}" class="w-8 h-8 object-contain drop-shadow-md" alt="mission" onerror="this.outerHTML='<span class=\\'text-2xl\\'>${displayEmoji}</span>'" />`
-      : `<span class="text-2xl">${displayEmoji}</span>`;
+      ? `<img src="${assetUrl(missionImageUrl)}" class="mission-marker__image" alt="" onerror="this.outerHTML='<span class=\\'mission-marker__emoji\\'>${displayEmoji}</span>'" />`
+      : `<span class="mission-marker__emoji">${displayEmoji}</span>`;
 
     return L.divIcon({
-      className: "custom-div-icon",
+      className: `custom-div-icon ${isDoctorWorld ? "mission-marker--doctor" : ""}`,
       html: `
-                <div class="flex flex-col items-center justify-center -mt-8 ${grayscaleClass} transition-all z-[${isCurrent ? 100 : 50}]">
-                    <div class="bg-white text-slate-800 font-bold text-sm px-2 py-0.5 rounded-full shadow-md border-b-2 border-slate-300 mb-1">
-                        ${isCompleted ? "✓" : number}
-                    </div>
-                    <div class="w-12 h-12 rounded-full shadow-lg border-[3px] border-white flex items-center justify-center transform ${emojiScale} transition-transform drop-shadow-md" style="background-color: ${bgColor}">
-                        ${iconContent}
-                    </div>
-                </div>
+        <div class="mission-marker ${markerState}" style="--world-color:${worldColor}">
+          <div class="mission-marker__number">${isCompleted ? "✓" : number}</div>
+          <div class="mission-marker__portrait">${iconContent}</div>
+          ${isCurrent ? '<div class="mission-marker__signal"></div>' : ""}
+        </div>
             `,
-      iconSize: [48, 64],
-      iconAnchor: [24, 60],
+      iconSize: [68, 82],
+      iconAnchor: [34, 72],
     });
   };
 
@@ -245,7 +238,11 @@ export const MapView: React.FC<MapViewProps> = ({
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col z-0" dir="rtl">
+    <div
+      className={`absolute inset-0 flex flex-col z-0 game-map game-map--${worldId}`}
+      dir="rtl"
+      style={{ "--world-color": worldColor } as React.CSSProperties}
+    >
       {/* Skip button — top-left, mirrors global "חזרה" at top-right */}
       {onSkip && (
         <button
@@ -291,22 +288,40 @@ export const MapView: React.FC<MapViewProps> = ({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
+          {isDoctorWorld && (
+            <div className="doctor-map-atmosphere" aria-hidden="true" />
+          )}
+
           {/* Draw path to the next mission */}
           {nextMission && currentPosition && (
-            <Polyline
+            <>
+              <Polyline
+                positions={[
+                  [currentPosition.lat, currentPosition.lng],
+                  [nextMission.lat, nextMission.lng],
+                ]}
+                pathOptions={{
+                  color: worldColor,
+                  weight: 14,
+                  opacity: 0.18,
+                  lineCap: "round",
+                }}
+              />
+              <Polyline
               positions={[
                 [currentPosition.lat, currentPosition.lng],
                 [nextMission.lat, nextMission.lng],
               ]}
               pathOptions={{
                 color: worldColor || "#3B82F6",
-                weight: 5,
-                dashArray: "10, 15",
-                opacity: 0.8,
+                weight: 6,
+                dashArray: "3, 13",
+                opacity: 0.95,
                 lineCap: "round",
                 lineJoin: "round",
               }}
             />
+            </>
           )}
 
           <ChangeView
@@ -372,12 +387,19 @@ export const MapView: React.FC<MapViewProps> = ({
       <div className="absolute bottom-6 left-[80px] md:left-4 right-4 z-[400] pb-[env(safe-area-inset-bottom)] pointer-events-none flex flex-col gap-4">
         {/* Distance and Bearing Info Card */}
         {nextMission && !isArrived && (
-          <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl p-4 shadow-xl border border-slate-200 dark:border-slate-700 pointer-events-auto relative">
+          <div className="mission-hud pointer-events-auto relative">
             <div className="flex justify-between items-center">
+              <div className="mission-hud__portrait shrink-0 ml-3">
+                {nextMission.imageUrl ? (
+                  <img src={assetUrl(nextMission.imageUrl)} alt="" />
+                ) : (
+                  <span>{nextMission.emoji || worldEmoji}</span>
+                )}
+              </div>
               <div className="flex flex-col flex-1 min-w-0 ml-2">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-1 truncate">
-                    משימה {currentMissionIndex + 1}: {nextMission.title}
+                  <h2 className="text-lg font-bold text-white mb-1 truncate">
+                    {nextMission.title}
                   </h2>
                   {onSkip && (
                     <button
@@ -392,10 +414,10 @@ export const MapView: React.FC<MapViewProps> = ({
                 </div>
                 {distanceToNext !== null && (
                   <div className="flex items-baseline gap-2">
-                    <span className="text-sm text-slate-500 dark:text-slate-400">
-                      מרחק:
+                    <span className="text-sm text-white/60">
+                      היעד הבא
                     </span>
-                    <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                    <span className="text-3xl font-black text-white tracking-tight">
                       {Math.round(distanceToNext)} מ׳
                     </span>
                   </div>
@@ -405,15 +427,22 @@ export const MapView: React.FC<MapViewProps> = ({
                     📡 מיקום משוער
                   </span>
                 )}
+                <button
+                  type="button"
+                  onClick={onArrived}
+                  className="mission-hud__start"
+                >
+                  להגיע למשימה ולהתחיל
+                </button>
               </div>
 
               {bearingToNext !== null && (
-                <div className="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-700 rounded-full w-14 h-14 border-2 border-slate-200 dark:border-slate-600 shadow-inner pointer-events-none shrink-0">
+                <div className="mission-hud__compass">
                   <div
                     style={{
                       transform: `rotate(${(((bearingToNext - (deviceHeading ?? 0)) % 360) + 360) % 360}deg)`,
                     }}
-                    className="w-full h-full flex items-center justify-center text-blue-500 dark:text-blue-400 text-2xl transition-transform duration-500 drop-shadow-md"
+                    className="w-full h-full flex items-center justify-center text-white text-3xl transition-transform duration-500 drop-shadow-md"
                   >
                     ↑
                   </div>

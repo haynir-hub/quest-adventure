@@ -7,3 +7,164 @@
     @apply bg-slate-900 text-white min-h-screen text-right;
   }
 }
+
+.game-map .leaflet-tile-pane {
+  filter: saturate(.55) brightness(.78) contrast(1.08);
+}
+
+.game-map--doctor .leaflet-tile-pane {
+  filter: grayscale(.72) sepia(.22) hue-rotate(315deg) saturate(1.35) brightness(.42) contrast(1.35);
+}
+
+.doctor-map-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 350;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 42%, transparent 12%, rgba(20, 0, 0, .3) 58%, rgba(0, 0, 0, .72) 100%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0, rgba(255,255,255,.025) 1px, transparent 1px, transparent 4px);
+  mix-blend-mode: multiply;
+}
+
+.custom-div-icon { background: transparent; border: 0; }
+
+.mission-marker {
+  position: relative;
+  width: 68px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .2s ease, filter .2s ease;
+}
+
+.mission-marker__portrait {
+  width: 58px;
+  height: 58px;
+  overflow: hidden;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #252a32, #090b0e);
+  border: 3px solid rgba(255,255,255,.88);
+  box-shadow: 0 8px 20px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.12);
+}
+
+.mission-marker__image { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)); }
+.mission-marker__emoji { font-size: 30px; }
+
+.mission-marker__number {
+  position: absolute;
+  z-index: 2;
+  top: -3px;
+  right: -1px;
+  min-width: 25px;
+  height: 25px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: white;
+  background: #161a20;
+  border: 2px solid rgba(255,255,255,.92);
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 3px 9px rgba(0,0,0,.4);
+}
+
+.mission-marker--future { transform: scale(.88); opacity: .94; }
+.mission-marker--future .mission-marker__portrait { border-color: rgba(255,255,255,.72); }
+.mission-marker--completed { transform: scale(.82); opacity: .68; }
+.mission-marker--completed .mission-marker__image { filter: grayscale(.55) drop-shadow(0 3px 5px rgba(0,0,0,.55)); }
+.mission-marker--completed .mission-marker__number { background: #28372f; }
+.mission-marker--current { transform: scale(1.08); }
+.mission-marker--current .mission-marker__portrait {
+  border-color: var(--world-color);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.85), 0 0 24px var(--world-color), 0 12px 24px rgba(0,0,0,.58);
+}
+.mission-marker--current .mission-marker__number { background: var(--world-color); }
+
+.mission-marker__signal {
+  position: absolute;
+  inset: 7px 5px 11px;
+  border: 2px solid var(--world-color);
+  border-radius: 22px;
+  animation: marker-signal 1.8s ease-out infinite;
+}
+
+@keyframes marker-signal {
+  0% { transform: scale(.8); opacity: .9; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
+.mission-marker--doctor .mission-marker__portrait {
+  border-radius: 8px;
+  background: radial-gradient(circle at 50% 42%, #f8fafc 0%, #cbd5e1 72%, #64748b 100%);
+  box-shadow: 0 8px 22px rgba(0,0,0,.62), inset 0 0 0 1px rgba(255,255,255,.75);
+}
+.mission-marker--doctor .mission-marker__image { filter: drop-shadow(0 4px 4px rgba(0,0,0,.5)) contrast(1.12); }
+
+.mission-hud {
+  padding: 14px;
+  border-radius: 22px;
+  color: white;
+  background: linear-gradient(135deg, rgba(16,18,23,.94), rgba(35,20,22,.92));
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 18px 48px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter: blur(16px) saturate(1.2);
+}
+
+.game-map--doctor .mission-hud { border-color: rgba(185,28,28,.55); box-shadow: 0 18px 48px rgba(0,0,0,.58), 0 0 28px rgba(127,29,29,.18); }
+.game-map--doctor .mission-hud__portrait { background: radial-gradient(circle, #f8fafc, #94a3b8); }
+
+.mission-hud__portrait {
+  width: 64px;
+  height: 72px;
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #090b0e;
+  border: 1px solid rgba(255,255,255,.18);
+  font-size: 34px;
+}
+.mission-hud__portrait img { width: 100%; height: 100%; object-fit: contain; }
+.mission-hud__compass {
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--world-color) 55%, #101318);
+  border: 2px solid rgba(255,255,255,.5);
+  box-shadow: inset 0 0 16px rgba(0,0,0,.35), 0 0 18px color-mix(in srgb, var(--world-color) 35%, transparent);
+  pointer-events: none;
+}
+
+.mission-hud__start { min-height: 48px; width: 100%; margin-top: 10px; padding: 8px 14px; border-radius: 14px; color: #fff; background: var(--world-color); border: 1px solid rgba(255,255,255,.45); box-shadow: 0 6px 18px color-mix(in srgb, var(--world-color) 38%, transparent); font-size: 16px; font-weight: 900; transition: transform .15s ease, filter .15s ease; }
+.mission-hud__start:active { transform: scale(.97); filter: brightness(.9); }
+
+.world-selector { width: 100%; max-width: 1180px; margin: 0 auto; padding: 42px 12px 54px; }
+.world-selector__header { text-align: center; margin-bottom: 34px; }
+.world-selector__eyebrow { display: inline-block; margin-bottom: 8px; color: #64748b; font-size: 14px; font-weight: 900; letter-spacing: .18em; }
+.world-selector__header h1 { margin: 0; color: #0f172a; font-size: clamp(34px, 6vw, 62px); font-weight: 950; line-height: 1.02; letter-spacing: -.035em; }
+.world-selector__header p { margin: 12px 0 0; color: #64748b; font-size: 18px; font-weight: 700; }
+.world-selector__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.world-card { position: relative; min-height: 330px; padding: 0; overflow: hidden; border-radius: 28px; color: white; text-align: right; background: #111827; border: 1px solid rgba(15,23,42,.12); box-shadow: 0 18px 45px rgba(15,23,42,.16); isolation: isolate; animation: world-card-in .45s both; animation-delay: var(--card-delay); transition: transform .2s ease, box-shadow .2s ease; }
+.world-card:hover { transform: translateY(-5px); box-shadow: 0 25px 55px rgba(15,23,42,.24); }
+.world-card:active { transform: scale(.98); }
+.world-card:focus-visible { outline: 4px solid #38bdf8; outline-offset: 4px; }
+.world-card__art { position: absolute; inset: 0; display: grid; place-items: center; background: linear-gradient(180deg, color-mix(in srgb, var(--world-color) 76%, #080b12) 0%, #0b1019 78%), var(--world-color); }
+.world-card__art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 38%, rgba(2,6,23,.25) 58%, rgba(2,6,23,.95) 100%); }
+.world-card__glow { position: absolute; width: 240px; height: 240px; border-radius: 50%; background: var(--world-secondary); filter: blur(65px); opacity: .35; }
+.world-card__art img { position: relative; z-index: 1; width: 76%; height: 235px; object-fit: contain; filter: drop-shadow(0 18px 16px rgba(0,0,0,.45)); transition: transform .28s ease; }
+.world-card:hover .world-card__art img { transform: scale(1.06); }
+.world-card__art > span { position: relative; z-index: 1; font-size: 112px; filter: drop-shadow(0 18px 14px rgba(0,0,0,.45)); }
+.world-card__number { position: absolute; top: 14px; left: 18px; z-index: 2; color: rgba(255,255,255,.55); font-size: 18px; font-weight: 900; letter-spacing: .12em; }
+.world-card__content { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; display: flex; align-items: end; justify-content: space-between; padding: 22px; }
+.world-card__missions { color: rgba(255,255,255,.68); font-size: 14px; font-weight: 800; }
+.world-card__content h2 { margin: 3px 0 0; color: white; font-size: 27px; line-height: 1.05; font-weight: 950; }
+.world-card__enter { width: 48px; height: 48px; flex: 0 0 48px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28); backdrop-filter: blur(8px); font-size: 25px; }
+@keyframes world-card-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 850px) { .world-selector__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .world-selector { padding-top: 28px; } .world-selector__header { margin-bottom: 24px; } .world-selector__header p { font-size: 16px; } .world-selector__grid { grid-template-columns: 1fr; gap: 14px; } .world-card { min-height: 250px; } .world-card__art img { height: 180px; width: 68%; } .world-card__art > span { font-size: 88px; } }

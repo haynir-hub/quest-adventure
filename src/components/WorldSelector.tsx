@@ -1,55 +1,48 @@
-import { worldsData } from '../worlds/worldsData';
+import { assetUrl } from "../utils/assets";
+import { worldsData } from "../worlds/worldsData";
 
 interface WorldSelectorProps {
     onSelect?: (worldId: string) => void;
 }
 
-const WorldSelector: React.FC<WorldSelectorProps> = ({ onSelect }) => {
-    return (
-        <div className="flex flex-col items-center w-full max-w-6xl mx-auto" dir="rtl">
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-10 text-neutral-800 text-center drop-shadow-sm">
-                בחר את ההרפתקה שלך
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
-                {worldsData.map((world) => (
-                    <div
-                        key={world.id}
-                        className="rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col overflow-hidden bg-white border-4 border-transparent"
-                    >
-                        {/* צבע רקע לפי העולם */}
-                        <div
-                            style={{ backgroundColor: world.primaryColor }}
-                            className="py-12 flex justify-center items-center relative"
-                        >
-                            {/* אלמנט אווירה כהה קצת מעל הכל כדי לשבור אחידות במקרה של צבעים בהירים */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                            <span className="text-8xl drop-shadow-xl relative z-10">{world.emoji}</span>
-                        </div>
-
-                        <div className="p-6 flex flex-col flex-grow text-center">
-                            <h3 className="text-3xl font-bold mb-3 text-neutral-800">{world.name}</h3>
-                            <p className="text-lg text-neutral-600 mb-8 flex-grow leading-relaxed">
-                                {world.description}
-                            </p>
-
-                            <button
-                                onClick={() => onSelect && onSelect(world.id)}
-                                style={{
-                                    backgroundColor: world.primaryColor,
-                                    // כדי לוודא שניתן לקרוא את הכפתור גם על צהוב
-                                    color: world.id === 'pokemon' ? '#1f2937' : '#ffffff'
-                                }}
-                                className="w-full min-h-[56px] px-6 py-4 font-bold text-2xl rounded-2xl shadow-md hover:brightness-110 active:scale-95 transition-all outline-none focus:ring-4 focus:ring-blue-300/50 flex items-center justify-center gap-2"
-                            >
-                                בחר
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
+const fallbackCovers: Record<string, string> = {
+  mario: "/images/mario_01_Mario.png",
 };
+
+const WorldSelector: React.FC<WorldSelectorProps> = ({ onSelect }) => (
+  <main className="world-selector" dir="rtl">
+    <header className="world-selector__header">
+      <span className="world-selector__eyebrow">QUEST ADVENTURE</span>
+      <h1>איזה עולם מחכה לכם היום?</h1>
+      <p>בחרו עולם, צאו לדרך והשלימו את כל המשימות</p>
+    </header>
+
+    <div className="world-selector__grid">
+      {worldsData.map((world, index) => {
+        const cover = world.missions.find((mission) => mission.imageUrl)?.imageUrl || fallbackCovers[world.id];
+        return (
+          <button
+            type="button"
+            key={world.id}
+            onClick={() => onSelect?.(world.id)}
+            className={`world-card world-card--${world.id}`}
+            style={{ "--world-color": world.primaryColor, "--world-secondary": world.secondaryColor, "--card-delay": `${index * 55}ms` } as React.CSSProperties}
+            aria-label={`כניסה לעולם ${world.name}`}
+          >
+            <div className="world-card__art" aria-hidden="true">
+              <div className="world-card__glow" />
+              {cover ? <img src={assetUrl(cover)} alt="" /> : <span>{world.emoji}</span>}
+              <div className="world-card__number">0{index + 1}</div>
+            </div>
+            <div className="world-card__content">
+              <div><span className="world-card__missions">{world.missions.length} משימות</span><h2>{world.name}</h2></div>
+              <span className="world-card__enter" aria-hidden="true">←</span>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  </main>
+);
 
 export default WorldSelector;
