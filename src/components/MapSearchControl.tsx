@@ -136,7 +136,9 @@ export const MapSearchControl: React.FC<MapSearchControlProps> = ({
 
   return (
     <div
-      className="absolute top-3 left-3 right-3 z-[500] max-w-md mx-auto"
+      // top-20 clears the fixed "חזרה"/"דלג" pill buttons that float at
+      // top-6 above this control — at top-3 they used to sit on top of it.
+      className="absolute top-20 left-3 right-3 z-[500] max-w-md mx-auto"
       dir="rtl"
       onClick={(e) => e.stopPropagation()}
     >
@@ -150,7 +152,7 @@ export const MapSearchControl: React.FC<MapSearchControlProps> = ({
           onBlur={() => window.setTimeout(() => setFocused(false), 200)}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className="w-full bg-white/95 backdrop-blur-sm rounded-xl pr-10 pl-10 py-3 text-slate-800 text-sm shadow-lg border border-slate-200 outline-none focus:ring-2 focus:ring-blue-400 placeholder:text-slate-400"
+          className="w-full bg-white/95 backdrop-blur-sm rounded-xl pr-10 pl-10 py-3 text-slate-800 text-base shadow-lg border border-slate-200 outline-none focus:ring-2 focus:ring-blue-400 placeholder:text-slate-400"
         />
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
           {loading ? "⌛" : "🔍"}

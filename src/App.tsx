@@ -691,6 +691,12 @@ function App() {
               gameState.currentMissionIndex >=
               currentAdventure.missions.length - 1
             }
+            characterImageUrl={
+              currentAdventure.missions[gameState.currentMissionIndex]?.imageUrl
+            }
+            characterName={
+              currentAdventure.missions[gameState.currentMissionIndex]?.title
+            }
           />
         ) : null;
       case AppState.FINISH: {
@@ -785,20 +791,30 @@ function App() {
         </div>
       )}
 
-      {/* PWA Install Button — persistent floating, hidden only on onboarding */}
-      {isInstallable && appState !== AppState.ONBOARDING && (
-        <button
-          type="button"
-          onClick={handleInstallClick}
-          className="fixed bottom-28 left-4 bg-blue-600 text-white px-4 py-3 rounded-full shadow-lg z-[100] flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition-all text-base font-bold border-2 border-white min-h-[48px]"
-          dir="rtl"
-        >
-          <span className="text-xl" role="img" aria-label="mobile">
-            📱
-          </span>
-          הוסף למסך הבית
-        </button>
-      )}
+      {/* PWA Install Button — persistent floating, but only on the "chrome"
+          screens (home / world menu / library / finish) that don't have
+          their own bottom-anchored primary button. On every in-game screen
+          (map, creator's map picker, AR camera, the mission timer/counter,
+          the reward screen) it used to float on top of that screen's own
+          bottom card or action button — worst on narrow phones, where e.g.
+          the mission "עצור" button sits directly under it. */}
+      {isInstallable &&
+        (appState === AppState.HOME ||
+          appState === AppState.WORLD_MENU ||
+          appState === AppState.GAME_LIBRARY ||
+          appState === AppState.FINISH) && (
+          <button
+            type="button"
+            onClick={handleInstallClick}
+            className="fixed bottom-28 left-4 bg-blue-600 text-white px-4 py-3 rounded-full shadow-lg z-[100] flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition-all text-base font-bold border-2 border-white min-h-[48px]"
+            dir="rtl"
+          >
+            <span className="text-xl" role="img" aria-label="mobile">
+              📱
+            </span>
+            הוסף למסך הבית
+          </button>
+        )}
 
       {/* Global Back Button (RTL top right) */}
       {appState !== AppState.HOME && appState !== AppState.FINISH && (

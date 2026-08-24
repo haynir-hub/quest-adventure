@@ -258,14 +258,16 @@ export const MapView: React.FC<MapViewProps> = ({
         </button>
       )}
 
-      {/* GPS Error Banner */}
+      {/* GPS Error Banner — pt-20 clears the fixed "חזרה"/"דלג" pills (top-6,
+          ~44px tall) which sit in the viewport-fixed layer above this
+          normal-flow banner and would otherwise visually cut its text. */}
       {gpsError && !gpsErrorDismissed && (
-        <div className="flex items-center justify-between gap-2 bg-orange-500 text-white px-4 py-2 text-sm font-medium z-[500] shrink-0">
+        <div className="flex items-center justify-between gap-2 bg-orange-500 text-white px-4 pt-20 pb-3 text-base font-medium shrink-0">
           <span>{gpsError}</span>
           <button
             type="button"
             onClick={() => setGpsErrorDismissed(true)}
-            className="text-white/80 hover:text-white text-lg leading-none shrink-0"
+            className="text-white/80 hover:text-white text-2xl leading-none shrink-0 min-w-[32px] min-h-[32px]"
             aria-label="סגור"
           >
             ✕

@@ -3,6 +3,7 @@ import type { Mission } from "../types";
 import { worldsData } from "../worlds/worldsData";
 import type { WorldTheme } from "../worlds/worldThemes";
 import { primeAudio } from "../utils/audio";
+import { assetUrl } from "../utils/assets";
 
 interface MissionScreenProps {
   mission: Mission;
@@ -33,6 +34,7 @@ const MissionScreen: React.FC<MissionScreenProps> = ({
   const [isRunning, setIsRunning] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -144,6 +146,14 @@ const MissionScreen: React.FC<MissionScreenProps> = ({
           </div>
         ) : isTimerMission ? (
           <div className="flex flex-col items-center">
+            {mission.imageUrl && !imageFailed && (
+              <img
+                src={assetUrl(mission.imageUrl)}
+                alt={mission.title}
+                onError={() => setImageFailed(true)}
+                className="w-40 h-40 md:w-48 md:h-48 rounded-[2.5rem] object-cover shadow-2xl border-4 border-white/70 mb-6"
+              />
+            )}
             <div
               className="w-40 h-40 md:w-48 md:h-48 rounded-full flex items-center justify-center shadow-2xl border-[6px] md:border-8 mb-6 transition-transform duration-300 text-gray-900"
               style={{
@@ -171,6 +181,14 @@ const MissionScreen: React.FC<MissionScreenProps> = ({
           </div>
         ) : (
           <div className="flex flex-col items-center w-full px-4">
+            {mission.imageUrl && !imageFailed && (
+              <img
+                src={assetUrl(mission.imageUrl)}
+                alt={mission.title}
+                onError={() => setImageFailed(true)}
+                className="w-36 h-36 md:w-44 md:h-44 rounded-[2.5rem] object-cover shadow-2xl border-4 border-white/70 mb-6"
+              />
+            )}
             <button
               onClick={handleCounterClick}
               disabled={isFinished}

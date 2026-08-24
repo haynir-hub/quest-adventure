@@ -704,6 +704,13 @@ export const worldThemes: Record<string, WorldTheme> = {
         imageUrl: "/images/doctor-nowhere/dn_sunman.png",
         description: "פרצוף שמש מאיים שאי אפשר להפסיק להביט בו.",
       },
+      {
+        name: "וריטי",
+        emoji: "🟡",
+        imageUrl: "/images/verity/verity.png",
+        description:
+          "היצור הצהוב ממוד האימה של Minecraft. הוא נראה ידידותי בהתחלה, אבל יודע עליך יותר מדי.",
+      },
     ],
     entityLabel: "איזה יצור יופיע מבעד למסך?",
     catchItemEmoji: "🔦",

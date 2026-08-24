@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { worldsData } from "../worlds/worldsData";
 import { HaiGagAnimation } from "./HaiGagAnimation";
 import { nextHaiGag, type HaiGagId } from "../utils/haiGags";
+import { CharacterVideo } from "./CharacterVideo";
+import { characterVideoFor } from "../utils/characterVideos";
 
 interface RewardScreenProps {
   worldId: string;
@@ -9,6 +11,8 @@ interface RewardScreenProps {
   totalMissions: number;
   onContinue: () => void;
   isLastMission: boolean;
+  characterImageUrl?: string;
+  characterName?: string;
 }
 
 const SHAPES = ["square", "circle", "triangle"];
@@ -98,6 +102,8 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({
   totalMissions,
   onContinue,
   isLastMission,
+  characterImageUrl,
+  characterName = "הדמות",
 }) => {
   const world = worldsData.find((w) => w.id === worldId) || worldsData[0];
   const [confetti, setConfetti] = useState<any[]>([]);
@@ -106,6 +112,8 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({
   // הבחירה נעשית פעם אחת בטעינת המסך — ה-ref מונע קידום כפול של המונה
   // ב-StrictMode, ששם את ה-effect פעמיים בפיתוח.
   const showHaiGag = worldId === "doctor";
+  const characterVideo = characterVideoFor(characterImageUrl);
+  const [videoUnavailable, setVideoUnavailable] = useState(false);
   const [haiGag, setHaiGag] = useState<HaiGagId | null>(null);
   const haiGagPicked = useRef(false);
 
@@ -175,10 +183,16 @@ export const RewardScreen: React.FC<RewardScreenProps> = ({
 
       {/* Content Container */}
       <div
-        className="relative z-10 w-full max-w-md p-6 md:p-8 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col items-center gap-4 md:gap-6 border-4 mx-4"
+        className="relative z-10 w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto p-5 md:p-8 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col items-center gap-4 md:gap-6 border-4 mx-4"
         style={{ borderColor: world.secondaryColor }}
       >
-        {showHaiGag && haiGag ? (
+        {characterVideo && !videoUnavailable ? (
+          <CharacterVideo
+            src={characterVideo}
+            characterName={characterName}
+            onUnavailable={() => setVideoUnavailable(true)}
+          />
+        ) : showHaiGag && haiGag ? (
           <HaiGagAnimation gagId={haiGag} />
         ) : (
           <div
