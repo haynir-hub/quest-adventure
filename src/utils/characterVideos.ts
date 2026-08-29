@@ -11,6 +11,9 @@ const CHARACTER_VIDEO_BY_IMAGE: Record<string, string> = {
   "dn_cymbal-sawhand.png": "/videos/doctor-nowhere/cymbal-sawhand.mp4",
   "dn_johnny-smokestalk.png": "/videos/doctor-nowhere/johnny-smokestalk.mp4",
   "dn_sunman.png": "/videos/doctor-nowhere/sunman.mp4",
+  // קוני, הקונוס השמן. דמות חדשה שנוצרה במיוחד לסבב הזה (29.8) -
+  // היחידה מבין השבע שגם עוצבה מאפס ולא רק צולמה מחדש.
+  "dn_cony.png": "/videos/doctor-nowhere/cony.mp4",
 };
 
 export const characterVideoFor = (imageUrl?: string) => {

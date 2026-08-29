@@ -705,6 +705,13 @@ export const worldThemes: Record<string, WorldTheme> = {
         description: "פרצוף שמש מאיים שאי אפשר להפסיק להביט בו.",
       },
       {
+        name: "קוני",
+        emoji: "🚧",
+        imageUrl: "/images/doctor-nowhere/dn_cony.png",
+        description:
+          "קונוס תנועה כתום, עגול ושמן, עם עיניים גדולות ותמימות. נראה חמוד לגמרי — עד שאתה נתקל בו.",
+      },
+      {
         name: "וריטי",
         emoji: "🟡",
         imageUrl: "/images/verity/verity.png",

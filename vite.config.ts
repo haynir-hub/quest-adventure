@@ -5,9 +5,18 @@ import { VitePWA } from "vite-plugin-pwa";
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
+  // **ברירת המחדל היא הכתובת שבה האתר באמת מוגש: /quest/.**
+  //
+  // עד 29.8 ברירת המחדל בבילד הייתה "/quest-adventure/" - שם התיקייה על
+  // השרת, לא הנתיב הציבורי. nginx עושה alias מ-/quest/ לתיקייה הזאת, ולכן
+  // `npm run build` נקי ייצר index.html שמצביע ל-/quest-adventure/assets/,
+  // וכל האתר החזיר דף לבן. DEPLOY.md כבר אמר במפורש "base חייב להיות
+  // /quest/", אבל הקוד אמר אחרת - וההוראה שנמצאת רק בתיעוד היא הוראה
+  // שמישהו ידלג עליה. **קרה בפועל ב-29.8** בדיוק ככה, בדיפלוי של שבעת
+  // הסרטונים החדשים. עכשיו הפעולה הבטוחה היא ברירת המחדל.
   base:
     process.env.VITE_BASE_PATH ??
-    (command === "build" ? "/quest-adventure/" : "/"),
+    (command === "build" ? "/quest/" : "/"),
   plugins: [
     react(),
     basicSsl(),
