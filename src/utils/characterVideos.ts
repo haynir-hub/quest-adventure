@@ -14,6 +14,15 @@ const CHARACTER_VIDEO_BY_IMAGE: Record<string, string> = {
   // קוני, הקונוס השמן. דמות חדשה שנוצרה במיוחד לסבב הזה (29.8) -
   // היחידה מבין השבע שגם עוצבה מאפס ולא רק צולמה מחדש.
   "dn_cony.png": "/videos/doctor-nowhere/cony.mp4",
+  // עולם "מונסטר חי": בסוף כל משימה רואים את חי האמיתי מנצח את חיבוט
+  // בתחנה שבה חיבוט חיבל. הסרטון של משימה 7 הוא הניצחון הסופי.
+  "mh_01_power.png": "/videos/monster-hai/mh_win_01_power.mp4",
+  "mh_02_water.png": "/videos/monster-hai/mh_win_02_water.mp4",
+  "mh_03_signal.png": "/videos/monster-hai/mh_win_03_signal.mp4",
+  "mh_04_traffic.png": "/videos/monster-hai/mh_win_04_traffic.mp4",
+  "mh_05_court.png": "/videos/monster-hai/mh_win_05_court.mp4",
+  "mh_06_school.png": "/videos/monster-hai/mh_win_06_school.mp4",
+  "mh_07_core.png": "/videos/monster-hai/mh_win_07_core.mp4",
 };
 
 export const characterVideoFor = (imageUrl?: string) => {

@@ -345,4 +345,85 @@ export const worldsData: WorldData[] = [
       },
     ],
   },
+  {
+    id: "monster",
+    name: "מונסטר חי",
+    description:
+      "חיבוט — שיבוט מכני של חי — ברח מהמעבדה והוא מחבל בעיר תחנה אחר תחנה. בכל משימה הוא משבית משהו אחר, ואתם אלה שנותנים לחי את הכוח לעצור אותו. שבע תחנות, קרב אחד אחרון.",
+    primaryColor: "#DC2626", // אדום ליבה
+    secondaryColor: "#0B1120", // כחול-פלדה כהה
+    emoji: "🤖",
+    missions: [
+      {
+        id: "mh1",
+        title: "חיבוט מנתק את החשמל",
+        description:
+          "חיבוט תלש את הכבל הראשי והשכונה שקעה בחושך. קפצו במקום כדי להטעין את הגנרטור ולהחזיר את האור",
+        missionType: "JUMPS",
+        amount: 15,
+        emoji: "⚡",
+        imageUrl: "/images/monster-hai/mh_01_power.png",
+      },
+      {
+        id: "mh2",
+        title: "חיבוט סוגר את המים",
+        description:
+          "חיבוט סגר את ברז המים הראשי של העיר. זחלו בתוך צינור המים עד השסתום כדי לפתוח אותו מחדש",
+        missionType: "CRAWL",
+        amount: 12,
+        emoji: "💧",
+        imageUrl: "/images/monster-hai/mh_02_water.png",
+      },
+      {
+        id: "mh3",
+        title: "חיבוט מנפץ את האנטנה",
+        description:
+          "אין קליטה, אין קשר, אף אחד לא יכול לקרוא לעזרה. רוצו במקום כדי להעביר את ההודעה ברגל",
+        missionType: "RUN",
+        amount: 40,
+        emoji: "📡",
+        imageUrl: "/images/monster-hai/mh_03_signal.png",
+      },
+      {
+        id: "mh4",
+        title: "חיבוט משגע את הרמזורים",
+        description:
+          "כל הרמזורים בעיר נתקעו על אדום. צעדו במקום בקצב ויציב כדי להעביר את כולם בבטחה",
+        missionType: "WALK",
+        amount: 45,
+        emoji: "🚦",
+        imageUrl: "/images/monster-hai/mh_04_traffic.png",
+      },
+      {
+        id: "mh5",
+        title: "חיבוט הורס את המגרש",
+        description:
+          "חיבוט עיקם את הסל במגרש הכדורסל. עשו שכיבות סמיכה כדי לאסוף כוח וליישר אותו בחזרה",
+        missionType: "PUSHUPS",
+        amount: 10,
+        emoji: "🏀",
+        imageUrl: "/images/monster-hai/mh_05_court.png",
+      },
+      {
+        id: "mh6",
+        title: "חיבוט נועל את בית הספר",
+        description:
+          "חיבוט ריתך שרשראות על השער. החזיקו פלאנק ותחזיקו את השער פתוח עד שכולם ייצאו",
+        missionType: "PLANK",
+        amount: 40,
+        emoji: "🏫",
+        imageUrl: "/images/monster-hai/mh_06_school.png",
+      },
+      {
+        id: "mh7",
+        title: "הקרב האחרון מול חיבוט",
+        description:
+          "חיבוט הפעיל את מכונת השיבוט והוא מייצר עוד כמוהו. זה הקרב האחרון — רוצו במקום בכל הכוח ותנו לחי לסיים את זה",
+        missionType: "RUN",
+        amount: 60,
+        emoji: "🔥",
+        imageUrl: "/images/monster-hai/mh_07_core.png",
+      },
+    ],
+  },
 ];

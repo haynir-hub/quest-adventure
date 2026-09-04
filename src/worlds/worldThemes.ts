@@ -722,4 +722,62 @@ export const worldThemes: Record<string, WorldTheme> = {
     entityLabel: "איזה יצור יופיע מבעד למסך?",
     catchItemEmoji: "🔦",
   },
+  monster: {
+    adventureIntro:
+      "במעבדה יצרו שיבוט מכני של חי וקראו לו חיבוט. הוא ברח, והוא מחבל בעיר תחנה אחר תחנה. כל משימה שתסיימו נותנת לחי את הכוח לנצח אותו בקרב — עד הקרב האחרון.",
+    missionPointName: "תחנת חבלה",
+    missionWrapper: (desc: string, amount: number | string) =>
+      `${desc} — ${amount} ותנו לחי לנצח את חיבוט!`,
+    rewardText: "שבב מנוטרל",
+    rewardEmoji: "🔩",
+    characterName: "חי",
+    missionEntities: [
+      {
+        name: "חיבוט — רשת החשמל",
+        emoji: "⚡",
+        imageUrl: "/images/monster-hai/mh_01_power.png",
+        description:
+          "חיבוט תולש את הכבל הראשי מתחנת הכוח ומחשיך את כל השכונה.",
+      },
+      {
+        name: "חיבוט — אספקת המים",
+        emoji: "💧",
+        imageUrl: "/images/monster-hai/mh_02_water.png",
+        description: "חיבוט סוגר את ברז המים הראשי של העיר עמוק מתחת לאדמה.",
+      },
+      {
+        name: "חיבוט — אנטנת התקשורת",
+        emoji: "📡",
+        imageUrl: "/images/monster-hai/mh_03_signal.png",
+        description: "חיבוט מנפץ את צלחת השידור ומנתק את העיר מהעולם.",
+      },
+      {
+        name: "חיבוט — הרמזורים",
+        emoji: "🚦",
+        imageUrl: "/images/monster-hai/mh_04_traffic.png",
+        description: "חיבוט פורץ לארון הבקרה ותוקע את כל הרמזורים על אדום.",
+      },
+      {
+        name: "חיבוט — מגרש הכדורסל",
+        emoji: "🏀",
+        imageUrl: "/images/monster-hai/mh_05_court.png",
+        description: "חיבוט מעקם את הסל במגרש כדי שאף אחד לא יוכל לשחק.",
+      },
+      {
+        name: "חיבוט — שער בית הספר",
+        emoji: "🏫",
+        imageUrl: "/images/monster-hai/mh_06_school.png",
+        description: "חיבוט מרתך שרשראות על שער בית הספר ונועל את כולם בחוץ.",
+      },
+      {
+        name: "חיבוט — מכונת השיבוט",
+        emoji: "🔥",
+        imageUrl: "/images/monster-hai/mh_07_core.png",
+        description:
+          "הקרב האחרון. חיבוט מפעיל את הליבה ומתחיל לייצר עוד עותקים של עצמו.",
+      },
+    ],
+    entityLabel: "איפה חיבוט מחבל בפעם הזאת?",
+    catchItemEmoji: "🔩",
+  },
 };

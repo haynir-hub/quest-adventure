@@ -80,20 +80,30 @@ const fnafAchievements = [
   "שרדתם את כל חמשת הלילות! 🏆",
 ];
 
+const monsterAchievements = [
+  "האור חזר לשכונה — חי הפיל את חיבוט! ⚡",
+  "המים זורמים שוב — חיבוט נשטף! 💧",
+  "הקליטה חזרה — חיבוט עף מהאנטנה! 📡",
+  "הרמזורים ירוקים — חי הפיל אותו על הכביש! 🚦",
+  "הסל יושר — חי ניצח אותו במגרש! 🏀",
+  "השער נפתח — חיבוט נשאר בחוץ! 🏫",
+  "מכונת השיבוט כובתה — חיבוט הובס סופית! 🔥",
+];
+
+const achievementsByWorld: Record<string, string[]> = {
+  mario: marioAchievements,
+  pokemon: pokemonAchievements,
+  treasure: treasureAchievements,
+  fnaf: fnafAchievements,
+  monster: monsterAchievements,
+};
+
 const getAchievementText = (worldId: string, index: number) => {
-  const safeIndex = index % 5; // ensure it doesn't break if index > 4
-  switch (worldId) {
-    case "mario":
-      return marioAchievements[safeIndex];
-    case "pokemon":
-      return pokemonAchievements[safeIndex];
-    case "treasure":
-      return treasureAchievements[safeIndex];
-    case "fnaf":
-      return fnafAchievements[safeIndex];
-    default:
-      return "השגת פריט מיוחד! ✨";
-  }
+  const list = achievementsByWorld[worldId];
+  if (!list || list.length === 0) return "השגת פריט מיוחד! ✨";
+  // המודולו הוא מול אורך הרשימה עצמה. קודם הוא היה קבוע 5, ולכן עולם עם
+  // שבע משימות היה חוזר לטקסט של משימה 1 בסיבוב השני.
+  return list[index % list.length];
 };
 
 export const RewardScreen: React.FC<RewardScreenProps> = ({
