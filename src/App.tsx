@@ -500,6 +500,11 @@ function App() {
         const primaryColor =
           worldsData.find((w) => w.id === selectedWorldId)?.primaryColor ||
           "#3B82F6";
+        // ההרפתקה המוכנה מייצרת את כל משימות העולם, ולכן המספר נגזר מהעולם
+        // ולא קבוע. עד עכשיו היה כתוב "5" קשיח, כי לכל העולמות היו חמש
+        // משימות - ובעולם מונסטר חי, שיש בו שבע, הכיתוב פשוט שיקר.
+        const worldMissionCount =
+          worldsData.find((w) => w.id === selectedWorldId)?.missions.length ?? 5;
         let worldAdventures: Adventure[] = [];
         try {
           const customAdventuresStr = localStorage.getItem("adventures");
@@ -549,7 +554,7 @@ function App() {
                     הרפתקה רגילה מיוצרת מראש
                   </h3>
                   <p className="text-slate-500 font-medium text-sm">
-                    הרפתקה קלאסית עם 5 משימות סביבכם
+                    הרפתקה קלאסית עם {worldMissionCount} משימות סביבכם
                   </p>
                 </div>
                 <div
