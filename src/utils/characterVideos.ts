@@ -23,6 +23,15 @@ const CHARACTER_VIDEO_BY_IMAGE: Record<string, string> = {
   "mh_05_court.png": "/videos/monster-hai/mh_win_05_court.mp4",
   "mh_06_school.png": "/videos/monster-hai/mh_win_06_school.mp4",
   "mh_07_core.png": "/videos/monster-hai/mh_win_07_core.mp4",
+  // עולם "Doctor Nowhere נגד חיבוט": שבע מערכות של מלחמה אחת. הסרטון של
+  // מערכה 5 הוא הנפילה - הוא היחיד שנגמר רע, בכוונה.
+  "dw_01_alliance.png": "/videos/dn-war/dw_win_01_alliance.mp4",
+  "dw_02_ambush.png": "/videos/dn-war/dw_win_02_ambush.mp4",
+  "dw_03_clone-army.png": "/videos/dn-war/dw_win_03_clone-army.mp4",
+  "dw_04_the-doctor.png": "/videos/dn-war/dw_win_04_the-doctor.mp4",
+  "dw_05_the-fall.png": "/videos/dn-war/dw_win_05_the-fall.mp4",
+  "dw_06_counterattack.png": "/videos/dn-war/dw_win_06_counterattack.mp4",
+  "dw_07_final-battle.png": "/videos/dn-war/dw_win_07_final-battle.mp4",
 };
 
 export const characterVideoFor = (imageUrl?: string) => {

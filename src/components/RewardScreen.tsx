@@ -90,12 +90,23 @@ const monsterAchievements = [
   "מכונת השיבוט כובתה — חיבוט הובס סופית! 🔥",
 ];
 
+const dnwarAchievements = [
+  "הברית נכרתה — המפלצות איתכם! 🤝",
+  "המארב הצליח — חיבוט ספג את המכה הראשונה! 🌒",
+  "עמדתם מול צבא השיבוטים! 🤖",
+  "הדוקטור נכנס — השיבוטים מתפרקים! 🎩",
+  "שרדתם את הרגע הכי אפל. קמים. 💀",
+  "ההסתערות יצאה לדרך — כולם יחד! 🔥",
+  "הליבה כבתה. חיבוט הובס על ידי כולם! ⚔️",
+];
+
 const achievementsByWorld: Record<string, string[]> = {
   mario: marioAchievements,
   pokemon: pokemonAchievements,
   treasure: treasureAchievements,
   fnaf: fnafAchievements,
   monster: monsterAchievements,
+  dnwar: dnwarAchievements,
 };
 
 const getAchievementText = (worldId: string, index: number) => {

@@ -426,4 +426,85 @@ export const worldsData: WorldData[] = [
       },
     ],
   },
+  {
+    id: "dnwar",
+    name: "Doctor Nowhere נגד חיבוט",
+    description:
+      "חיבוט חזק מדי בשביל חי לבד. אז כל היצורים של Doctor Nowhere יוצאים מהמסכים - והפעם הם לא רודפים אחריכם, הם נלחמים לצידכם. שבע מערכות של מלחמה אחת: ברית, מארב, צבא שיבוטים, נפילה, והתקוממות אחרונה.",
+    primaryColor: "#7C3AED", // סגול-אימה
+    secondaryColor: "#0B0B12", // שחור-מסך
+    emoji: "📺",
+    missions: [
+      {
+        id: "dw1",
+        title: "הברית",
+        description:
+          "היצורים יוצאים מהמסכים ונעמדים לצידכם. צעדו במקום יחד איתם ותבנו את השורה",
+        missionType: "WALK",
+        amount: 40,
+        emoji: "🤝",
+        imageUrl: "/images/dn-war/dw_01_alliance.png",
+      },
+      {
+        id: "dw2",
+        title: "המארב בסמטה",
+        description:
+          "המפלצות לוכדות את חיבוט בסמטה. קפצו מהר כדי לתקוף איתן לפני שהוא נחלץ",
+        missionType: "JUMPS",
+        amount: 18,
+        emoji: "🌒",
+        imageUrl: "/images/dn-war/dw_02_ambush.png",
+      },
+      {
+        id: "dw3",
+        title: "צבא השיבוטים",
+        description:
+          "חיבוט מפעיל את הליבה ומייצר עשרות עותקים. רוצו במקום - הם מגיעים מכל הכיוונים",
+        missionType: "RUN",
+        amount: 50,
+        emoji: "🤖",
+        imageUrl: "/images/dn-war/dw_03_clone-army.png",
+      },
+      {
+        id: "dw4",
+        title: "הדוקטור נכנס לקרב",
+        description:
+          "הדוקטור בכבודו ובעצמו נכנס והגלגל מתהפך. שכיבות סמיכה - תנו לו כוח",
+        missionType: "PUSHUPS",
+        amount: 12,
+        emoji: "🎩",
+        imageUrl: "/images/dn-war/dw_04_the-doctor.png",
+      },
+      {
+        id: "dw5",
+        title: "הנפילה",
+        description:
+          "המפלצות מוכרעות ואתם לבד מוקפים. החזיקו פלאנק ואל תישברו - זה הרגע הכי קשה",
+        missionType: "PLANK",
+        amount: 45,
+        emoji: "💀",
+        imageUrl: "/images/dn-war/dw_05_the-fall.png",
+      },
+      {
+        id: "dw6",
+        title: "ההתקפה הנגדית",
+        description:
+          "אתם קמים והמפלצות קמות אחריכם. זחלו קדימה בהסתערות אחת גדולה",
+        missionType: "CRAWL",
+        amount: 15,
+        emoji: "🔥",
+        imageUrl: "/images/dn-war/dw_06_counterattack.png",
+      },
+      {
+        id: "dw7",
+        title: "הקרב האחרון - כולם נגד חיבוט",
+        description:
+          "המערכה האחרונה. כולם יחד מול חיבוט - רוצו בכל הכוח עד שהליבה תיכבה",
+        missionType: "RUN",
+        amount: 70,
+        emoji: "⚔️",
+        imageUrl: "/images/dn-war/dw_07_final-battle.png",
+      },
+    ],
+  },
 ];

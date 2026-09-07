@@ -780,4 +780,62 @@ export const worldThemes: Record<string, WorldTheme> = {
     entityLabel: "איפה חיבוט מחבל בפעם הזאת?",
     catchItemEmoji: "🔩",
   },
+  dnwar: {
+    adventureIntro:
+      "חיבוט חזק מדי בשביל חי לבד. האות בטלוויזיה נחלש, והיצורים של Doctor Nowhere יוצאים מהמסכים - אבל הפעם הם לא באים אליכם, הם באים איתכם. שבע מערכות עד שהליבה תיכבה.",
+    missionPointName: "מערכה",
+    missionWrapper: (desc: string, amount: number | string) =>
+      `${desc} — ${amount}. המפלצות איתכם!`,
+    rewardText: "מערכה שנוצחה",
+    rewardEmoji: "📺",
+    characterName: "חי והמפלצות",
+    missionEntities: [
+      {
+        name: "מערכה 1 — הברית",
+        emoji: "🤝",
+        imageUrl: "/images/dn-war/dw_01_alliance.png",
+        description:
+          "היצורים זוחלים מבעד למסכים ונעמדים לצידו של חי במקום לרדוף אחריו. חיבוט מסתכל מרחוק.",
+      },
+      {
+        name: "מערכה 2 — המארב",
+        emoji: "🌒",
+        imageUrl: "/images/dn-war/dw_02_ambush.png",
+        description: "המפלצות לוכדות את חיבוט בסמטה חשוכה. המכה הראשונה של הברית.",
+      },
+      {
+        name: "מערכה 3 — צבא השיבוטים",
+        emoji: "🤖",
+        imageUrl: "/images/dn-war/dw_03_clone-army.png",
+        description: "חיבוט מפעיל את הליבה ומייצר עשרות עותקים של עצמו. הברית במיעוט.",
+      },
+      {
+        name: "מערכה 4 — הדוקטור",
+        emoji: "🎩",
+        imageUrl: "/images/dn-war/dw_04_the-doctor.png",
+        description: "הדוקטור עצמו נכנס לקרב, והשיבוטים מתחילים להתפרק.",
+      },
+      {
+        name: "מערכה 5 — הנפילה",
+        emoji: "💀",
+        imageUrl: "/images/dn-war/dw_05_the-fall.png",
+        description:
+          "הרגע האפל. המפלצות מוכרעות ומפוזרות, וחי נשאר לבדו מוקף בשיבוטים.",
+      },
+      {
+        name: "מערכה 6 — ההתקפה הנגדית",
+        emoji: "🔥",
+        imageUrl: "/images/dn-war/dw_06_counterattack.png",
+        description: "חי קם, והמפלצות קמות אחריו לגל אחד גדול.",
+      },
+      {
+        name: "מערכה 7 — הקרב האחרון",
+        emoji: "⚔️",
+        imageUrl: "/images/dn-war/dw_07_final-battle.png",
+        description: "כולם יחד מכריעים את חיבוט. הליבה מתנפצת וכבה.",
+      },
+    ],
+    entityLabel: "באיזו מערכה של המלחמה אתם?",
+    catchItemEmoji: "📺",
+  },
 };
