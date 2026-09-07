@@ -2,6 +2,23 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import basicSsl from "@vitejs/plugin-basic-ssl";
 import { VitePWA } from "vite-plugin-pwa";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
+
+const require = createRequire(import.meta.url);
+const mapLibreDist = join(dirname(require.resolve("maplibre-gl/package.json")), "dist");
+
+const mapLibreWorkerAssets = () => ({
+  name: "maplibre-worker-assets",
+  generateBundle(this: { emitFile: (asset: { type: "asset"; fileName: string; source: string }) => void }) {
+    const shared = readFileSync(join(mapLibreDist, "maplibre-gl-shared.mjs"), "utf8");
+    const worker = readFileSync(join(mapLibreDist, "maplibre-gl-worker.mjs"), "utf8")
+      .replace("./maplibre-gl-shared.mjs", "./maplibre-gl-shared.js");
+    this.emitFile({ type: "asset", fileName: "assets/maplibre-gl-shared.js", source: shared });
+    this.emitFile({ type: "asset", fileName: "assets/maplibre-gl-worker.js", source: worker });
+  },
+});
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
@@ -20,6 +37,7 @@ export default defineConfig(({ command }) => ({
   plugins: [
     react(),
     basicSsl(),
+    mapLibreWorkerAssets(),
     VitePWA({
       registerType: "autoUpdate",
       devOptions: {

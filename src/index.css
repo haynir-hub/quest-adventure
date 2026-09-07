@@ -12,6 +12,126 @@
   filter: saturate(.55) brightness(.78) contrast(1.08);
 }
 
+.game-map .navigation-map { position: absolute; inset: 0; overflow: hidden; background: #101820; }
+.navigation-map .maplibregl-canvas { filter: saturate(.72) contrast(1.08) brightness(.78); }
+.navigation-map .maplibregl-ctrl-attrib { font-size: 10px; opacity: .62; }
+.navigation-map .maplibregl-ctrl-logo { display: none; }
+
+.navigation-route {
+  position: absolute;
+  z-index: 8;
+  height: 8px;
+  transform-origin: 0 50%;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  color: white;
+  background: linear-gradient(90deg, #0891b2, #67e8f9);
+  border-radius: 999px;
+  box-shadow: 0 0 7px #22d3ee, 0 0 22px rgba(6,182,212,.7);
+  pointer-events: none;
+}
+.navigation-route span {
+  display: block;
+  transform: translateY(-1px);
+  font-size: 21px;
+  line-height: 1;
+  font-weight: 950;
+  text-shadow: 0 0 4px #075985;
+}
+
+.navigation-player {
+  position: relative;
+  width: 86px;
+  height: 86px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  filter: drop-shadow(0 12px 12px rgba(0,0,0,.48));
+}
+.navigation-player__accuracy {
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(103,232,249,.2), rgba(6,182,212,.04) 62%, transparent 64%);
+  border: 1px solid rgba(165,243,252,.42);
+  animation: navigation-accuracy 2.4s ease-out infinite;
+}
+.navigation-player__arrow {
+  position: relative;
+  z-index: 1;
+  width: 38px;
+  height: 52px;
+  background: linear-gradient(150deg, #a5f3fc 2%, #06b6d4 50%, #075985 96%);
+  clip-path: polygon(50% 0, 100% 100%, 50% 78%, 0 100%);
+  border-radius: 8px;
+  filter: drop-shadow(0 0 10px rgba(34,211,238,.92));
+}
+@keyframes navigation-accuracy {
+  0% { transform: scale(.72); opacity: .85; }
+  100% { transform: scale(1.25); opacity: 0; }
+}
+
+.navigation-objective {
+  position: absolute;
+  top: max(86px, calc(env(safe-area-inset-top) + 66px));
+  left: 50%;
+  z-index: 430;
+  min-height: 48px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(7,18,28,.86);
+  border: 1px solid rgba(165,243,252,.38);
+  box-shadow: 0 12px 32px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12);
+  backdrop-filter: blur(16px) saturate(1.25);
+  font-size: 17px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.navigation-objective__icon { color: #fde68a; font-size: 21px; }
+.navigation-compass-permission {
+  position: absolute;
+  top: max(144px, calc(env(safe-area-inset-top) + 124px));
+  left: 50%;
+  z-index: 430;
+  min-height: 44px;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  border-radius: 999px;
+  color: #083344;
+  background: rgba(207,250,254,.94);
+  border: 1px solid #67e8f9;
+  box-shadow: 0 10px 24px rgba(0,0,0,.26);
+  font-size: 14px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.navigation-recenter {
+  position: absolute;
+  left: 14px;
+  bottom: 190px;
+  z-index: 450;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #cffafe;
+  background: rgba(7,18,28,.9);
+  border: 1px solid rgba(165,243,252,.45);
+  box-shadow: 0 10px 28px rgba(0,0,0,.45), 0 0 18px rgba(34,211,238,.16);
+  backdrop-filter: blur(14px);
+  font-size: 31px;
+  font-weight: 900;
+  transition: transform .15s ease, background .15s ease;
+}
+
 .game-map--doctor .leaflet-tile-pane {
   filter: grayscale(.72) sepia(.22) hue-rotate(315deg) saturate(1.35) brightness(.42) contrast(1.35);
 }
@@ -37,6 +157,10 @@
   align-items: center;
   justify-content: center;
   transition: transform .2s ease, filter .2s ease;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
 }
 
 .mission-marker__portrait {

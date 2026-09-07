@@ -1,34 +1,12 @@
 import React, { useEffect } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  useMap,
-  useMapEvents,
-  Polyline,
-  ZoomControl,
-} from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import * as maplibregl from "maplibre-gl";
+import type { Map as MapLibreMap } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import type { Mission } from "../types";
 import { assetUrl } from "../utils/assets";
 import { calculateDistance, calculateBearing } from "../utils/geo";
 import { playSuccessSound } from "../utils/audio";
 import { worldsData } from "../worlds/worldsData";
-import MapSearchControl from "./MapSearchControl";
-
-// Fix for default marker icon in react-leaflet
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
 
 interface MapViewProps {
   missions: Mission[];
@@ -40,46 +18,38 @@ interface MapViewProps {
   gpsError?: string | null;
 }
 
-// Auto-follow GPS only while `follow` is true. The first render with a center
-// re-uses the last user-driven zoom (default 16 from MapContainer).
-function ChangeView({
-  center,
-  follow,
-}: {
-  center: [number, number] | null;
-  follow: boolean;
-}) {
-  const map = useMap();
-  useEffect(() => {
-    if (center && follow) {
-      map.setView(center, map.getZoom());
-    }
-  }, [center, map, follow]);
-  return null;
-}
+const NAVIGATION_ZOOM = 18.3;
+const NAVIGATION_PITCH = 58;
+maplibregl.setWorkerUrl(`${import.meta.env.BASE_URL}assets/maplibre-gl-worker.js`);
+const compassNeedsPermission = () =>
+  typeof DeviceOrientationEvent !== "undefined" &&
+  typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> })
+    .requestPermission === "function";
 
-// User pans → break auto-follow. Recenter button restores it.
-function FollowDisabler({ onUserPan }: { onUserPan: () => void }) {
-  useMapEvents({
-    dragstart: () => onUserPan(),
-  });
-  return null;
-}
-
-function MapRefSync({
-  mapRef,
-}: {
-  mapRef: React.MutableRefObject<L.Map | null>;
-}) {
-  const map = useMap();
-  useEffect(() => {
-    mapRef.current = map;
-    return () => {
-      mapRef.current = null;
-    };
-  }, [map, mapRef]);
-  return null;
-}
+const navigationStyle = {
+  version: 8 as const,
+  sources: {
+    osm: {
+      type: "raster" as const,
+      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      tileSize: 256,
+      attribution: "© OpenStreetMap contributors",
+      maxzoom: 19,
+    },
+  },
+  layers: [
+    {
+      id: "osm",
+      type: "raster" as const,
+      source: "osm",
+      paint: {
+        "raster-saturation": -0.45,
+        "raster-contrast": 0.12,
+        "raster-brightness-max": 0.82,
+      },
+    },
+  ],
+};
 
 export const MapView: React.FC<MapViewProps> = ({
   missions,
@@ -95,18 +65,23 @@ export const MapView: React.FC<MapViewProps> = ({
   const [gpsErrorDismissed, setGpsErrorDismissed] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [deviceHeading, setDeviceHeading] = React.useState<number | null>(null);
+  const [compassPermissionGranted, setCompassPermissionGranted] = React.useState(
+    () => !compassNeedsPermission(),
+  );
+  const [needsCompassPermission, setNeedsCompassPermission] = React.useState(
+    () => compassNeedsPermission(),
+  );
   const [followGps, setFollowGps] = React.useState(true);
   const [previewIndex, setPreviewIndex] = React.useState<number | null>(null);
-  const mapRef = React.useRef<L.Map | null>(null);
-
-  const handleRecenter = () => {
-    if (currentPosition && mapRef.current) {
-      mapRef.current.flyTo([currentPosition.lat, currentPosition.lng], 17, {
-        duration: 0.8,
-      });
-      setFollowGps(true);
-    }
-  };
+  const mapContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const mapRef = React.useRef<MapLibreMap | null>(null);
+  const missionMarkersRef = React.useRef<maplibregl.Marker[]>([]);
+  const playerMarkerRef = React.useRef<maplibregl.Marker | null>(null);
+  const routeOverlayRef = React.useRef<HTMLDivElement | null>(null);
+  const currentPositionRef = React.useRef(currentPosition);
+  const nextMissionRef = React.useRef(nextMission);
+  currentPositionRef.current = currentPosition;
+  nextMissionRef.current = nextMission;
 
   const world = worldsData.find((w) => w.id === worldId);
   const worldEmoji = world?.emoji || "📍";
@@ -133,8 +108,21 @@ export const MapView: React.FC<MapViewProps> = ({
         )
       : null;
 
-  // Create custom marker icons for numbered missions
-  const createNumberedIcon = (
+  const handleRecenter = () => {
+    if (currentPosition && mapRef.current) {
+      setFollowGps(true);
+      mapRef.current.easeTo({
+        center: [currentPosition.lng, currentPosition.lat],
+        zoom: NAVIGATION_ZOOM,
+        pitch: NAVIGATION_PITCH,
+        bearing: deviceHeading ?? bearingToNext ?? 0,
+        offset: [0, 55],
+        duration: 700,
+      });
+    }
+  };
+
+  const createMissionMarker = (
     number: number,
     index: number,
     isCurrent: boolean,
@@ -154,30 +142,42 @@ export const MapView: React.FC<MapViewProps> = ({
       markerState = "mission-marker--completed";
     }
 
-    const iconContent = missionImageUrl
-      ? `<img src="${assetUrl(missionImageUrl)}" class="mission-marker__image" alt="" onerror="this.outerHTML='<span class=\\'mission-marker__emoji\\'>${displayEmoji}</span>'" />`
-      : `<span class="mission-marker__emoji">${displayEmoji}</span>`;
+    const element = document.createElement("button");
+    element.type = "button";
+    element.className = `mission-marker ${markerState} ${isDoctorWorld ? "mission-marker--doctor" : ""}`;
+    element.style.setProperty("--world-color", worldColor);
+    element.setAttribute("aria-label", `משימה ${number}`);
 
-    return L.divIcon({
-      className: `custom-div-icon ${isDoctorWorld ? "mission-marker--doctor" : ""}`,
-      html: `
-        <div class="mission-marker ${markerState}" style="--world-color:${worldColor}">
-          <div class="mission-marker__number">${isCompleted ? "✓" : number}</div>
-          <div class="mission-marker__portrait">${iconContent}</div>
-          ${isCurrent ? '<div class="mission-marker__signal"></div>' : ""}
-        </div>
-            `,
-      iconSize: [68, 82],
-      iconAnchor: [34, 72],
-    });
+    const badge = document.createElement("span");
+    badge.className = "mission-marker__number";
+    badge.textContent = isCompleted ? "✓" : String(number);
+    element.appendChild(badge);
+
+    const portrait = document.createElement("span");
+    portrait.className = "mission-marker__portrait";
+    if (missionImageUrl) {
+      const image = document.createElement("img");
+      image.src = assetUrl(missionImageUrl);
+      image.alt = "";
+      image.className = "mission-marker__image";
+      image.addEventListener("error", () => {
+        portrait.textContent = displayEmoji;
+        portrait.classList.add("mission-marker__emoji");
+      });
+      portrait.appendChild(image);
+    } else {
+      portrait.textContent = displayEmoji;
+      portrait.classList.add("mission-marker__emoji");
+    }
+    element.appendChild(portrait);
+
+    if (isCurrent) {
+      const signal = document.createElement("span");
+      signal.className = "mission-marker__signal";
+      element.appendChild(signal);
+    }
+    return element;
   };
-
-  const userIcon = L.divIcon({
-    className: "user-location-icon",
-    html: `<div class="w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-md animate-pulse"></div>`,
-    iconSize: [16, 16],
-    iconAnchor: [8, 8],
-  });
 
   const isArrived = distanceToNext !== null && distanceToNext < 30;
 
@@ -196,8 +196,7 @@ export const MapView: React.FC<MapViewProps> = ({
     }
   }, [isArrived, hasPlayedSound]);
 
-  useEffect(() => {
-    const handler = (e: DeviceOrientationEvent) => {
+  const handleOrientation = React.useCallback((e: DeviceOrientationEvent) => {
       // iOS exposes true compass heading via this non-standard property
       const iosHeading = (e as unknown as { webkitCompassHeading?: number })
         .webkitCompassHeading;
@@ -207,19 +206,120 @@ export const MapView: React.FC<MapViewProps> = ({
         // Android: alpha is rotation around z-axis; subtract from 360 for compass-like behavior
         setDeviceHeading((360 - e.alpha + 360) % 360);
       }
-    };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const api = DeviceOrientationEvent as any;
-    if (typeof api.requestPermission === "function") {
-      api.requestPermission().then((result: string) => {
-        if (result === "granted")
-          window.addEventListener("deviceorientation", handler);
-      });
-    } else {
-      window.addEventListener("deviceorientation", handler);
-    }
-    return () => window.removeEventListener("deviceorientation", handler);
   }, []);
+
+  useEffect(() => {
+    if (!compassPermissionGranted) return;
+    window.addEventListener("deviceorientation", handleOrientation);
+    return () => window.removeEventListener("deviceorientation", handleOrientation);
+  }, [compassPermissionGranted, handleOrientation]);
+
+  const enableCompass = async () => {
+    const api = DeviceOrientationEvent as unknown as {
+      requestPermission: () => Promise<string>;
+    };
+    try {
+      const result = await api.requestPermission();
+      if (result === "granted") {
+        setCompassPermissionGranted(true);
+        setNeedsCompassPermission(false);
+      }
+    } catch {
+      setNeedsCompassPermission(true);
+    }
+  };
+
+  const hasPosition = currentPosition !== null;
+
+  useEffect(() => {
+    if (!hasPosition || !currentPosition || !mapContainerRef.current || mapRef.current) return;
+
+    const initialBearing = deviceHeading ?? bearingToNext ?? 0;
+    const map = new maplibregl.Map({
+      container: mapContainerRef.current,
+      style: navigationStyle,
+      center: [currentPosition.lng, currentPosition.lat],
+      zoom: NAVIGATION_ZOOM,
+      pitch: NAVIGATION_PITCH,
+      bearing: initialBearing,
+      attributionControl: false,
+      maxPitch: 70,
+    });
+    mapRef.current = map;
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), "top-left");
+
+    const stopFollowing = (event: { originalEvent?: unknown }) => {
+      if (event.originalEvent) setFollowGps(false);
+    };
+    map.on("dragstart", stopFollowing);
+    map.on("zoomstart", stopFollowing);
+    map.on("rotatestart", stopFollowing);
+
+    const updateRouteOverlay = () => {
+      const position = currentPositionRef.current;
+      const mission = nextMissionRef.current;
+      const route = routeOverlayRef.current;
+      if (!position || !mission || !route) return;
+      const start = map.project([position.lng, position.lat]);
+      const end = map.project([mission.lng, mission.lat]);
+      const distance = Math.hypot(end.x - start.x, end.y - start.y);
+      const angle = Math.atan2(end.y - start.y, end.x - start.x) * (180 / Math.PI);
+      route.style.left = `${start.x}px`;
+      route.style.top = `${start.y}px`;
+      route.style.width = `${distance}px`;
+      route.style.transform = `rotate(${angle}deg)`;
+    };
+    map.on("load", updateRouteOverlay);
+    map.on("move", updateRouteOverlay);
+
+    const playerElement = document.createElement("div");
+    playerElement.className = "navigation-player";
+    playerElement.innerHTML = '<span class="navigation-player__accuracy"></span><span class="navigation-player__arrow" aria-hidden="true"></span>';
+    playerMarkerRef.current = new maplibregl.Marker({ element: playerElement, anchor: "center" })
+      .setLngLat([currentPosition.lng, currentPosition.lat])
+      .addTo(map);
+
+    missionMarkersRef.current = missions.map((mission, index) => {
+      const element = createMissionMarker(
+        index + 1,
+        index,
+        index === currentMissionIndex,
+        mission.emoji,
+        mission.imageUrl,
+      );
+      element.addEventListener("click", () => setPreviewIndex(index));
+      return new maplibregl.Marker({ element, anchor: "bottom" })
+        .setLngLat([mission.lng, mission.lat])
+        .addTo(map);
+    });
+
+    return () => {
+      missionMarkersRef.current = [];
+      playerMarkerRef.current = null;
+      mapRef.current = null;
+      map.remove();
+    };
+    // Rebuild markers only when the active mission changes; GPS movement is handled below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasPosition, currentMissionIndex]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !currentPosition) return;
+
+    playerMarkerRef.current?.setLngLat([currentPosition.lng, currentPosition.lat]);
+    if (followGps) {
+      map.easeTo({
+        center: [currentPosition.lng, currentPosition.lat],
+        zoom: NAVIGATION_ZOOM,
+        pitch: NAVIGATION_PITCH,
+        bearing: deviceHeading ?? bearingToNext ?? map.getBearing(),
+        offset: [0, 55],
+        duration: 900,
+        essential: true,
+      });
+    }
+  }, [currentPosition, nextMission, deviceHeading, bearingToNext, followGps]);
 
   if (!currentPosition) {
     return (
@@ -273,112 +373,40 @@ export const MapView: React.FC<MapViewProps> = ({
       )}
       {/* Map Container */}
       <div className="flex-grow relative z-0">
-        <MapContainer
-          center={
-            currentPosition
-              ? [currentPosition.lat, currentPosition.lng]
-              : undefined
-          }
-          zoom={16}
-          style={{ height: "100%", width: "100%" }}
-          zoomControl={false}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+        <div ref={mapContainerRef} className="navigation-map" aria-label="מפת ניווט למשימה" />
 
-          {isDoctorWorld && (
-            <div className="doctor-map-atmosphere" aria-hidden="true" />
-          )}
+        <div ref={routeOverlayRef} className="navigation-route" aria-hidden="true">
+          <span>›</span><span>›</span><span>›</span>
+        </div>
 
-          {/* Draw path to the next mission */}
-          {nextMission && currentPosition && (
-            <>
-              <Polyline
-                positions={[
-                  [currentPosition.lat, currentPosition.lng],
-                  [nextMission.lat, nextMission.lng],
-                ]}
-                pathOptions={{
-                  color: worldColor,
-                  weight: 14,
-                  opacity: 0.18,
-                  lineCap: "round",
-                }}
-              />
-              <Polyline
-              positions={[
-                [currentPosition.lat, currentPosition.lng],
-                [nextMission.lat, nextMission.lng],
-              ]}
-              pathOptions={{
-                color: worldColor || "#3B82F6",
-                weight: 6,
-                dashArray: "3, 13",
-                opacity: 0.95,
-                lineCap: "round",
-                lineJoin: "round",
-              }}
-            />
-            </>
-          )}
+        {isDoctorWorld && (
+          <div className="doctor-map-atmosphere" aria-hidden="true" />
+        )}
 
-          <ChangeView
-            center={
-              currentPosition
-                ? [currentPosition.lat, currentPosition.lng]
-                : null
-            }
-            follow={followGps}
-          />
-          <FollowDisabler onUserPan={() => setFollowGps(false)} />
-          <ZoomControl position="bottomleft" />
-          <MapRefSync mapRef={mapRef} />
+        <div className="navigation-objective" aria-live="polite">
+          <span className="navigation-objective__icon">✦</span>
+          <span>היעד הבא</span>
+        </div>
 
-          {/* User Location Marker */}
-          <Marker
-            position={[currentPosition.lat, currentPosition.lng]}
-            icon={userIcon}
-          >
-            <Popup>אתם כאן!</Popup>
-          </Marker>
-
-          {/* Mission Markers — clicking opens a big preview modal (any mission, active or not) */}
-          {missions.map((mission, index) => (
-            <Marker
-              key={mission.id}
-              position={[mission.lat, mission.lng]}
-              icon={createNumberedIcon(
-                index + 1,
-                index,
-                index === currentMissionIndex,
-                mission.emoji,
-                mission.imageUrl,
-              )}
-              eventHandlers={{
-                click: () => setPreviewIndex(index),
-              }}
-            />
-          ))}
-        </MapContainer>
-
-        {/* Search control — rendered outside MapContainer so its dropdown can extend beyond the map (Leaflet panes are overflow:hidden) */}
-        <MapSearchControl mapRef={mapRef} />
+        {needsCompassPermission && (
+          <button type="button" onClick={enableCompass} className="navigation-compass-permission">
+            הפעלת כיוון תנועה
+          </button>
+        )}
 
         {/* Recenter button — rendered as sibling to MapContainer so it's positioned against the map wrapper, not inside Leaflet's panes */}
         <button
           type="button"
           onClick={handleRecenter}
           disabled={!currentPosition}
-          className={`absolute bottom-[120px] left-2 z-[450] w-11 h-11 rounded-full bg-white text-xl shadow-lg border border-slate-200 flex items-center justify-center transition-all ${
+          className={`navigation-recenter ${
             !currentPosition
               ? "opacity-40 cursor-not-allowed"
               : "hover:bg-slate-50 active:scale-95"
           }`}
           aria-label="חזור למיקומי"
         >
-          📍
+          ◎
         </button>
       </div>
 
