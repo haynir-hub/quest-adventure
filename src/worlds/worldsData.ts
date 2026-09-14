@@ -430,11 +430,23 @@ export const worldsData: WorldData[] = [
     id: "dnwar",
     name: "Doctor Nowhere נגד חיבוט",
     description:
-      "חיבוט חזק מדי בשביל חי לבד. אז כל היצורים של Doctor Nowhere יוצאים מהמסכים - והפעם הם לא רודפים אחריכם, הם נלחמים לצידכם. שבע מערכות של מלחמה אחת: ברית, מארב, צבא שיבוטים, נפילה, והתקוממות אחרונה.",
+      "חיבוט חזק מדי בשביל חי לבד. אז כל היצורים של Doctor Nowhere יוצאים מהמסכים - והפעם הם לא רודפים אחריכם, הם נלחמים לצידכם. שבע מערכות של מלחמה אחת: ברית, מארב, צבא שיבוטים, נפילה, והתקוממות אחרונה. ובין מערכה למערכה - יואב רובוט, העוזר הקטן של חיבוט, מותח את חי שוב ושוב.",
     primaryColor: "#7C3AED", // סגול-אימה
     secondaryColor: "#0B0B12", // שחור-מסך
     emoji: "📺",
+    // משימות המתיחה של יואב רובוט (yv) באות לפני כל מערכה (dw) ולא אחריה,
+    // כדי שהקרב האחרון יישאר המשימה האחרונה - המשחק מסמן אותה אוטומטית כסופית.
     missions: [
+      {
+        id: "yv1",
+        title: "יואב רובוט: הדלי שמעל הדלת",
+        description:
+          "יואב רובוט הניח דלי מים מעל דלת האולם, וחי נרטב עד העצמות. קפצו במקום כדי לנער את המים",
+        missionType: "JUMPS",
+        amount: 15,
+        emoji: "🪣",
+        imageUrl: "/images/dn-war/yv_01_bucket.png",
+      },
       {
         id: "dw1",
         title: "הברית",
@@ -444,6 +456,16 @@ export const worldsData: WorldData[] = [
         amount: 40,
         emoji: "🤝",
         imageUrl: "/images/dn-war/dw_01_alliance.png",
+      },
+      {
+        id: "yv2",
+        title: "יואב רובוט: דבק על הספסל",
+        description:
+          "יואב רובוט מרח דבק על ספסל האולם, וחי נדבק אליו. החזיקו פלאנק חזק עד שהספסל משחרר",
+        missionType: "PLANK",
+        amount: 30,
+        emoji: "🧴",
+        imageUrl: "/images/dn-war/yv_02_glue.png",
       },
       {
         id: "dw2",
@@ -456,6 +478,16 @@ export const worldsData: WorldData[] = [
         imageUrl: "/images/dn-war/dw_02_ambush.png",
       },
       {
+        id: "yv3",
+        title: "יואב רובוט: השרוכים הקשורים",
+        description:
+          "יואב רובוט קשר את השרוכים של חי זה לזה, וחי נפל על המגרש. צעדו בזהירות ואל תמעדו",
+        missionType: "WALK",
+        amount: 30,
+        emoji: "👟",
+        imageUrl: "/images/dn-war/yv_03_laces.png",
+      },
+      {
         id: "dw3",
         title: "צבא השיבוטים",
         description:
@@ -464,6 +496,16 @@ export const worldsData: WorldData[] = [
         amount: 50,
         emoji: "🤖",
         imageUrl: "/images/dn-war/dw_03_clone-army.png",
+      },
+      {
+        id: "yv4",
+        title: "יואב רובוט: השפם בטוש",
+        description:
+          "חי נרדם על הספה, ויואב רובוט צייר לו שפם ומשקפיים בטוש. רוצו במקום עד הכיור לשטוף את הפנים",
+        missionType: "RUN",
+        amount: 40,
+        emoji: "🥸",
+        imageUrl: "/images/dn-war/yv_04_mustache.png",
       },
       {
         id: "dw4",
@@ -476,6 +518,16 @@ export const worldsData: WorldData[] = [
         imageUrl: "/images/dn-war/dw_04_the-doctor.png",
       },
       {
+        id: "yv5",
+        title: "יואב רובוט: תותח הסליים",
+        description:
+          "יואב רובוט ירה סליים ירוק מהזרוע שלו, וחי מכוסה מכף רגל ועד ראש. זחלו מתחת לסליים והתחמקו מהירייה הבאה",
+        missionType: "CRAWL",
+        amount: 12,
+        emoji: "🟢",
+        imageUrl: "/images/dn-war/yv_05_slime.png",
+      },
+      {
         id: "dw5",
         title: "הנפילה",
         description:
@@ -486,6 +538,16 @@ export const worldsData: WorldData[] = [
         imageUrl: "/images/dn-war/dw_05_the-fall.png",
       },
       {
+        id: "yv6",
+        title: "יואב רובוט: הדאנק הרקטי",
+        description:
+          "יואב רובוט חטף לחי את הכדור עם זרוע רקטה והטביע לסל. שכיבות סמיכה - צריך כוח כדי להחזיר את הכדור",
+        missionType: "PUSHUPS",
+        amount: 10,
+        emoji: "🏀",
+        imageUrl: "/images/dn-war/yv_06_dunk.png",
+      },
+      {
         id: "dw6",
         title: "ההתקפה הנגדית",
         description:
@@ -494,6 +556,16 @@ export const worldsData: WorldData[] = [
         amount: 15,
         emoji: "🔥",
         imageUrl: "/images/dn-war/dw_06_counterattack.png",
+      },
+      {
+        id: "yv7",
+        title: "יואב רובוט: המומיה מנייר טואלט",
+        description:
+          "יואב רובוט עטף את חי בנייר טואלט כמו מומיה. רוצו במקום ותקרעו את הנייר לפני הקרב האחרון",
+        missionType: "RUN",
+        amount: 45,
+        emoji: "🧻",
+        imageUrl: "/images/dn-war/yv_07_mummy.png",
       },
       {
         id: "dw7",

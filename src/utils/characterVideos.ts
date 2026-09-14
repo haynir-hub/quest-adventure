@@ -32,10 +32,18 @@ const CHARACTER_VIDEO_BY_IMAGE: Record<string, string> = {
   "dw_05_the-fall.png": "/videos/dn-war/dw_win_05_the-fall.mp4",
   "dw_06_counterattack.png": "/videos/dn-war/dw_win_06_counterattack.mp4",
   "dw_07_final-battle.png": "/videos/dn-war/dw_win_07_final-battle.mp4",
+  // יואב רובוט באותו עולם: שבע מתיחות, ובכולן יואב מנצח וחי נשאר מתוח.
+  "yv_01_bucket.png": "/videos/dn-war/yv_prank_01_bucket.mp4",
+  "yv_02_glue.png": "/videos/dn-war/yv_prank_02_glue.mp4",
+  "yv_03_laces.png": "/videos/dn-war/yv_prank_03_laces.mp4",
+  "yv_04_mustache.png": "/videos/dn-war/yv_prank_04_mustache.mp4",
+  "yv_05_slime.png": "/videos/dn-war/yv_prank_05_slime.mp4",
+  "yv_06_dunk.png": "/videos/dn-war/yv_prank_06_dunk.mp4",
+  "yv_07_mummy.png": "/videos/dn-war/yv_prank_07_mummy.mp4",
 };
 
 export const characterVideoFor = (imageUrl?: string) => {
   if (!imageUrl) return null;
   const fileName = imageUrl.split("/").pop();
-  return fileName ? CHARACTER_VIDEO_BY_IMAGE[fileName] ?? null : null;
+  return fileName ? (CHARACTER_VIDEO_BY_IMAGE[fileName] ?? null) : null;
 };

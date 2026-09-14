@@ -736,8 +736,7 @@ export const worldThemes: Record<string, WorldTheme> = {
         name: "חיבוט — רשת החשמל",
         emoji: "⚡",
         imageUrl: "/images/monster-hai/mh_01_power.png",
-        description:
-          "חיבוט תולש את הכבל הראשי מתחנת הכוח ומחשיך את כל השכונה.",
+        description: "חיבוט תולש את הכבל הראשי מתחנת הכוח ומחשיך את כל השכונה.",
       },
       {
         name: "חיבוט — אספקת המים",
@@ -782,7 +781,7 @@ export const worldThemes: Record<string, WorldTheme> = {
   },
   dnwar: {
     adventureIntro:
-      "חיבוט חזק מדי בשביל חי לבד. האות בטלוויזיה נחלש, והיצורים של Doctor Nowhere יוצאים מהמסכים - אבל הפעם הם לא באים אליכם, הם באים איתכם. שבע מערכות עד שהליבה תיכבה.",
+      "חיבוט חזק מדי בשביל חי לבד. האות בטלוויזיה נחלש, והיצורים של Doctor Nowhere יוצאים מהמסכים - אבל הפעם הם לא באים אליכם, הם באים איתכם. שבע מערכות עד שהליבה תיכבה - ויואב רובוט, העוזר הקטן והשובב של חיבוט, יעשה הכול כדי למתוח את חי בדרך.",
     missionPointName: "מערכה",
     missionWrapper: (desc: string, amount: number | string) =>
       `${desc} — ${amount}. המפלצות איתכם!`,
@@ -801,13 +800,15 @@ export const worldThemes: Record<string, WorldTheme> = {
         name: "מערכה 2 — המארב",
         emoji: "🌒",
         imageUrl: "/images/dn-war/dw_02_ambush.png",
-        description: "המפלצות לוכדות את חיבוט בסמטה חשוכה. המכה הראשונה של הברית.",
+        description:
+          "המפלצות לוכדות את חיבוט בסמטה חשוכה. המכה הראשונה של הברית.",
       },
       {
         name: "מערכה 3 — צבא השיבוטים",
         emoji: "🤖",
         imageUrl: "/images/dn-war/dw_03_clone-army.png",
-        description: "חיבוט מפעיל את הליבה ומייצר עשרות עותקים של עצמו. הברית במיעוט.",
+        description:
+          "חיבוט מפעיל את הליבה ומייצר עשרות עותקים של עצמו. הברית במיעוט.",
       },
       {
         name: "מערכה 4 — הדוקטור",
@@ -833,6 +834,52 @@ export const worldThemes: Record<string, WorldTheme> = {
         emoji: "⚔️",
         imageUrl: "/images/dn-war/dw_07_final-battle.png",
         description: "כולם יחד מכריעים את חיבוט. הליבה מתנפצת וכבה.",
+      },
+      // יואב רובוט: חצי ילד, חצי רובוט, העוזר של חיבוט. הוא לא נלחם - הוא מותח.
+      // בכל אחד משבעת הסרטונים שלו המתיחה מצליחה ויואב בורח צוחק, בכוונה.
+      {
+        name: "מתיחה 1 — הדלי שמעל הדלת",
+        emoji: "🪣",
+        imageUrl: "/images/dn-war/yv_01_bucket.png",
+        description: "יואב רובוט מאזן דלי מים מעל דלת האולם ומחכה שחי ייכנס.",
+      },
+      {
+        name: "מתיחה 2 — דבק על הספסל",
+        emoji: "🧴",
+        imageUrl: "/images/dn-war/yv_02_glue.png",
+        description: "יואב רובוט מורח דבק על הספסל רגע לפני שחי מתיישב.",
+      },
+      {
+        name: "מתיחה 3 — השרוכים הקשורים",
+        emoji: "👟",
+        imageUrl: "/images/dn-war/yv_03_laces.png",
+        description: "חי מסביר על הלוח, ויואב רובוט קושר לו את השרוכים מלמטה.",
+      },
+      {
+        name: "מתיחה 4 — השפם בטוש",
+        emoji: "🥸",
+        imageUrl: "/images/dn-war/yv_04_mustache.png",
+        description: "חי ישן על הספה, ויואב רובוט מתגנב אליו עם טוש שחור.",
+      },
+      {
+        name: "מתיחה 5 — תותח הסליים",
+        emoji: "🟢",
+        imageUrl: "/images/dn-war/yv_05_slime.png",
+        description: "יואב רובוט מכוון את זרוע הסליים שלו לאורך המסדרון.",
+      },
+      {
+        name: "מתיחה 6 — הדאנק הרקטי",
+        emoji: "🏀",
+        imageUrl: "/images/dn-war/yv_06_dunk.png",
+        description:
+          "יואב רובוט מותח את הזרוע וחוטף לחי את הכדור באמצע הכדרור.",
+      },
+      {
+        name: "מתיחה 7 — המומיה",
+        emoji: "🧻",
+        imageUrl: "/images/dn-war/yv_07_mummy.png",
+        description:
+          "חי עוצם עיניים למתיחות, ויואב רובוט כבר מחזיק גליל נייר טואלט.",
       },
     ],
     entityLabel: "באיזו מערכה של המלחמה אתם?",

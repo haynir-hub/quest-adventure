@@ -35,11 +35,20 @@ alias מ-`/quest/` לשם.
 ```bash
 npm run build                                   # base חייב להיות /quest/
 rsync -a --delete dist/ root@140.82.32.36:/srv/quest-adventure/
-ssh root@140.82.32.36 deploy quest-adventure    # מגבה בלבד. הוא לא מושך קבצים
 ```
 
-`deploy` **רק יוצר גיבוי**. הוא לא מוריד כלום משום מקום. אם לא העלית, לא
-פרסת.
+`rsync` הוא הפריסה עצמה. **אל תריצו אחריו `ssh ... deploy quest-adventure` בלי
+קלט.** הסקריפט `/usr/local/bin/deploy` מגבה, ואז מחכה לטארבול ב-stdin
+(`tar xzf -`). בלי טארבול ה-tar נכשל, הסקריפט מוחק את התיקייה החיה ומשחזר
+אותה מהגיבוי שיצר שניות קודם - ומדפיס `ERROR: Failed to extract tarball`.
+האתר שורד רק כי הגיבוי נלקח אחרי ה-rsync. כך קרה ב-14.9.2026.
+
+אם רוצים גם גיבוי, זו הדרך שהסקריפט באמת מצפה לה (בלי `--delete`, ולכן
+קבצים שנמחקו מהבילד נשארים על השרת - לכן ה-rsync קודם):
+
+```bash
+tar czf - -C dist . | ssh root@140.82.32.36 deploy quest-adventure
+```
 
 ## המלכודת שהסתירה הכל, ואיך בודקים נכון
 
