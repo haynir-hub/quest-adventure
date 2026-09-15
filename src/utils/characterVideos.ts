@@ -40,6 +40,15 @@ const CHARACTER_VIDEO_BY_IMAGE: Record<string, string> = {
   "yv_05_slime.png": "/videos/dn-war/yv_prank_05_slime.mp4",
   "yv_06_dunk.png": "/videos/dn-war/yv_prank_06_dunk.mp4",
   "yv_07_mummy.png": "/videos/dn-war/yv_prank_07_mummy.mp4",
+  // עולם "יואב & חי": יואב וחי כמו במציאות, בלי רובוט. כל סרטון הוא המתיחה,
+  // וסרטון 7 הוא הנקמה של חי שנגמרת כשהוא רטוב ויואב מנצח.
+  "yh_01_salt.png": "/videos/yoav-hai/yh_prank_01_salt.mp4",
+  "yh_02_cushion.png": "/videos/yoav-hai/yh_prank_02_cushion.mp4",
+  "yh_03_spider.png": "/videos/yoav-hai/yh_prank_03_spider.mp4",
+  "yh_04_wrap.png": "/videos/yoav-hai/yh_prank_04_wrap.mp4",
+  "yh_05_balloons.png": "/videos/yoav-hai/yh_prank_05_balloons.mp4",
+  "yh_06_pop.png": "/videos/yoav-hai/yh_prank_06_pop.mp4",
+  "yh_07_hose.png": "/videos/yoav-hai/yh_prank_07_hose.mp4",
 };
 
 export const characterVideoFor = (imageUrl?: string) => {

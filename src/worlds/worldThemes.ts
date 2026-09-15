@@ -885,4 +885,61 @@ export const worldThemes: Record<string, WorldTheme> = {
     entityLabel: "באיזו מערכה של המלחמה אתם?",
     catchItemEmoji: "📺",
   },
+  yoavhai: {
+    adventureIntro:
+      "יואב החליט שהיום הוא יום המתיחות. חי עוד לא יודע מה מחכה לו בקפה, בכורסה, במיטה ובאוטו. עזרו לחי להתאושש משבע מתיחות - ואולי אפילו לנקום.",
+    missionPointName: "מתיחה",
+    missionWrapper: (desc: string, amount: number | string) =>
+      `${desc} — ${amount}. יואב כבר מתכנן את הבאה!`,
+    rewardText: "מתיחה ששרדתם",
+    rewardEmoji: "😜",
+    characterName: "יואב וחי",
+    missionEntities: [
+      {
+        name: "מתיחה 1 — מלח בקפה",
+        emoji: "🧂",
+        imageUrl: "/images/yoav-hai/yh_01_salt.png",
+        description: "יואב שופך מלח לכוס הקפה בזמן שחי עוד מפהק.",
+      },
+      {
+        name: "מתיחה 2 — כרית הפלוצים",
+        emoji: "💨",
+        imageUrl: "/images/yoav-hai/yh_02_cushion.png",
+        description: "כרית ורודה מתחת לכורסה, וחי מגיע עם הסנדוויץ'.",
+      },
+      {
+        name: "מתיחה 3 — העכביש על הכרית",
+        emoji: "🕷️",
+        imageUrl: "/images/yoav-hai/yh_03_spider.png",
+        description: "יואב מניח עכביש גומי שעיר על הכרית רגע לפני השינה.",
+      },
+      {
+        name: "מתיחה 4 — הניילון בפתח הדלת",
+        emoji: "🚪",
+        imageUrl: "/images/yoav-hai/yh_04_wrap.png",
+        description: "ניילון נצמד שקוף מתוח על הדלת, וחי רץ עם הטלפון.",
+      },
+      {
+        name: "מתיחה 5 — האוטו מלא בלונים",
+        emoji: "🎈",
+        imageUrl: "/images/yoav-hai/yh_05_balloons.png",
+        description: "האוטו מלא עד הגג בבלונים צבעוניים, וחי יוצא עם המפתחות.",
+      },
+      {
+        name: "מתיחה 6 — הבלון מאחורי הגב",
+        emoji: "💥",
+        imageUrl: "/images/yoav-hai/yh_06_pop.png",
+        description: "חי קורא עיתון, ויואב מתגנב מאחוריו עם בלון ועיפרון.",
+      },
+      {
+        name: "מתיחה 7 — הנקמה שנכשלת",
+        emoji: "💦",
+        imageUrl: "/images/yoav-hai/yh_07_hose.png",
+        description:
+          "חי מחכה בשיח עם אקדח מים, ויואב כבר עומד מאחוריו עם הצינור.",
+      },
+    ],
+    entityLabel: "איזו מתיחה יואב מכין הפעם?",
+    catchItemEmoji: "🎈",
+  },
 };

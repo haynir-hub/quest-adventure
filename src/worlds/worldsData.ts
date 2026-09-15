@@ -579,4 +579,87 @@ export const worldsData: WorldData[] = [
       },
     ],
   },
+  {
+    id: "yoavhai",
+    name: "יואב & חי",
+    description:
+      "מלחמת מתיחות בבית. יואב מותח את חי שש פעמים - מלח בקפה, כרית פלוצים, עכביש על הכרית ועוד - ובכל פעם חי צריך להתאושש. בסוף חי מנסה לנקום... ויואב כבר מחכה לו עם הצינור.",
+    primaryColor: "#2563EB", // הכחול של החולצה של יואב
+    secondaryColor: "#FACC15", // הצהוב של החולצה של חי
+    emoji: "😜",
+    // עולם בלי רובוטים ובלי מפלצות: יואב וחי כמו שהם במציאות. כל סרטון הוא
+    // המתיחה עצמה ונגמר ביואב צוחק. משימה 7 היא הנקמה של חי שנכשלת.
+    missions: [
+      {
+        id: "yh1",
+        title: "מלח בקפה",
+        description:
+          "יואב החליף לחי את הסוכר במלח, וחי ירק את הקפה. קפצו במקום כדי להוריד את הטעם המלוח",
+        missionType: "JUMPS",
+        amount: 15,
+        emoji: "🧂",
+        imageUrl: "/images/yoav-hai/yh_01_salt.png",
+      },
+      {
+        id: "yh2",
+        title: "כרית הפלוצים",
+        description:
+          "יואב הסתיר כרית פלוצים מתחת לכורסה, וכל הבית שמע. צעדו במקום בזמן שחי מחפש איפה להסתתר מהבושה",
+        missionType: "WALK",
+        amount: 30,
+        emoji: "💨",
+        imageUrl: "/images/yoav-hai/yh_02_cushion.png",
+      },
+      {
+        id: "yh3",
+        title: "העכביש על הכרית",
+        description:
+          "יואב שם עכביש גומי על הכרית של חי, וחי קפץ מהמיטה עד הקיר. רוצו במקום הכי מהר שאתם יכולים",
+        missionType: "RUN",
+        amount: 40,
+        emoji: "🕷️",
+        imageUrl: "/images/yoav-hai/yh_03_spider.png",
+      },
+      {
+        id: "yh4",
+        title: "הניילון בפתח הדלת",
+        description:
+          "יואב מתח ניילון נצמד שקוף על פתח הדלת, וחי נכנס בו עם הפנים. החזיקו פלאנק חזק בלי לזוז",
+        missionType: "PLANK",
+        amount: 30,
+        emoji: "🚪",
+        imageUrl: "/images/yoav-hai/yh_04_wrap.png",
+      },
+      {
+        id: "yh5",
+        title: "האוטו מלא בלונים",
+        description:
+          "יואב מילא את האוטו של חי בבלונים, והם התפוצצו החוצה כשחי פתח את הדלת. זחלו בין הבלונים עד האוטו",
+        missionType: "CRAWL",
+        amount: 12,
+        emoji: "🎈",
+        imageUrl: "/images/yoav-hai/yh_05_balloons.png",
+      },
+      {
+        id: "yh6",
+        title: "הבלון שהתפוצץ מאחורי הגב",
+        description:
+          "חי קרא עיתון בשקט, ויואב פוצץ לו בלון ממש מאחורי הראש. שכיבות סמיכה - צריך להרגיע את הלב",
+        missionType: "PUSHUPS",
+        amount: 10,
+        emoji: "💥",
+        imageUrl: "/images/yoav-hai/yh_06_pop.png",
+      },
+      {
+        id: "yh7",
+        title: "הנקמה של חי - שנכשלת",
+        description:
+          "חי מתחבא עם אקדח מים כדי לנקום, אבל יואב מגיע מאחור עם הצינור. רוצו במקום בכל הכוח - אולי הפעם תספיקו לברוח",
+        missionType: "RUN",
+        amount: 45,
+        emoji: "💦",
+        imageUrl: "/images/yoav-hai/yh_07_hose.png",
+      },
+    ],
+  },
 ];

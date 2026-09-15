@@ -109,6 +109,16 @@ const dnwarAchievements = [
   "הליבה כבתה. חיבוט הובס על ידי כולם! ⚔️",
 ];
 
+const yoavhaiAchievements = [
+  "שטפתם את הפה מהמלח — יואב 1, חי 0! 🧂",
+  "שרדתם את כרית הפלוצים — כל הבית עדיין צוחק! 💨",
+  "העכביש היה מגומי — אפשר לחזור לישון! 🕷️",
+  "קילפתם את הניילון מהפנים — יואב 4, חי 0! 🚪",
+  "הבלונים בחוץ — אפשר לנסוע! 🎈",
+  "הלב נרגע אחרי הפיצוץ — יואב כבר מתכנן את הבאה! 💥",
+  "רטובים עד העצמות. יואב ניצח את מלחמת המתיחות! 💦",
+];
+
 const achievementsByWorld: Record<string, string[]> = {
   mario: marioAchievements,
   pokemon: pokemonAchievements,
@@ -116,6 +126,7 @@ const achievementsByWorld: Record<string, string[]> = {
   fnaf: fnafAchievements,
   monster: monsterAchievements,
   dnwar: dnwarAchievements,
+  yoavhai: yoavhaiAchievements,
 };
 
 const getAchievementText = (worldId: string, index: number) => {
