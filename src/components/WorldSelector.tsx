@@ -2,7 +2,7 @@ import { assetUrl } from "../utils/assets";
 import { worldsData } from "../worlds/worldsData";
 
 interface WorldSelectorProps {
-    onSelect?: (worldId: string) => void;
+  onSelect?: (worldId: string) => void;
 }
 
 const fallbackCovers: Record<string, string> = {
@@ -19,24 +19,44 @@ const WorldSelector: React.FC<WorldSelectorProps> = ({ onSelect }) => (
 
     <div className="world-selector__grid">
       {worldsData.map((world, index) => {
-        const cover = world.missions.find((mission) => mission.imageUrl)?.imageUrl || fallbackCovers[world.id];
+        const cover =
+          world.coverImage ||
+          world.missions.find((mission) => mission.imageUrl)?.imageUrl ||
+          fallbackCovers[world.id];
         return (
           <button
             type="button"
             key={world.id}
             onClick={() => onSelect?.(world.id)}
             className={`world-card world-card--${world.id}`}
-            style={{ "--world-color": world.primaryColor, "--world-secondary": world.secondaryColor, "--card-delay": `${index * 55}ms` } as React.CSSProperties}
+            style={
+              {
+                "--world-color": world.primaryColor,
+                "--world-secondary": world.secondaryColor,
+                "--card-delay": `${index * 55}ms`,
+              } as React.CSSProperties
+            }
             aria-label={`כניסה לעולם ${world.name}`}
           >
             <div className="world-card__art" aria-hidden="true">
               <div className="world-card__glow" />
-              {cover ? <img src={assetUrl(cover)} alt="" /> : <span>{world.emoji}</span>}
+              {cover ? (
+                <img src={assetUrl(cover)} alt="" />
+              ) : (
+                <span>{world.emoji}</span>
+              )}
               <div className="world-card__number">0{index + 1}</div>
             </div>
             <div className="world-card__content">
-              <div><span className="world-card__missions">{world.missions.length} משימות</span><h2>{world.name}</h2></div>
-              <span className="world-card__enter" aria-hidden="true">←</span>
+              <div>
+                <span className="world-card__missions">
+                  {world.missions.length} משימות
+                </span>
+                <h2>{world.name}</h2>
+              </div>
+              <span className="world-card__enter" aria-hidden="true">
+                ←
+              </span>
             </div>
           </button>
         );

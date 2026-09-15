@@ -5,6 +5,9 @@ export interface WorldData {
   primaryColor: string;
   secondaryColor: string;
   emoji: string;
+  // תמונת הכרטיס בבורר העולמות. בלעדיה נלקחת התמונה של המשימה הראשונה,
+  // ואז כל שינוי בסדר המשימות מחליף בשקט גם את הכרטיס.
+  coverImage?: string;
   missions: {
     id: string;
     title: string;
@@ -434,6 +437,8 @@ export const worldsData: WorldData[] = [
     primaryColor: "#7C3AED", // סגול-אימה
     secondaryColor: "#0B0B12", // שחור-מסך
     emoji: "📺",
+    // הכרטיס נשאר תמונת הברית, גם כשהמשימה הראשונה היא מתיחה של יואב רובוט.
+    coverImage: "/images/dn-war/dw_01_alliance.png",
     // משימות המתיחה של יואב רובוט (yv) באות לפני כל מערכה (dw) ולא אחריה,
     // כדי שהקרב האחרון יישאר המשימה האחרונה - המשחק מסמן אותה אוטומטית כסופית.
     missions: [
