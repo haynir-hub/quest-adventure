@@ -627,6 +627,20 @@ export const worldThemes: Record<string, WorldTheme> = {
         description: "יצור ארוך ומעוות שגופו עשוי עמוד שדרה מתפתל.",
       },
       {
+        name: "מפלצת הצבי",
+        emoji: "🦌",
+        imageUrl: "/images/doctor-nowhere/dn_deer-monster.png",
+        description:
+          "יצור יער גבוה וצנום עם ראש של צבי וקרניים ענפות. אוהב לתלות לך דברים גבוה על הקרניים ולהעמיד פנים שזה לא הוא.",
+      },
+      {
+        name: "סירן־הד",
+        emoji: "📢",
+        imageUrl: "/images/doctor-nowhere/dn_siren-head.png",
+        description:
+          "עמוד מתכת חלוד וגבוה מאוד ששני רמקולי צפירה במקום ראש. מתגנב מאחוריך וצופר פתאום רק כדי לראות אותך קופץ.",
+      },
+      {
         name: "איש הבשר",
         emoji: "🥩",
         imageUrl: "/images/doctor-nowhere/dn_meat-man.png",

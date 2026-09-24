@@ -14,6 +14,10 @@ const CHARACTER_VIDEO_BY_IMAGE: Record<string, string> = {
   // קוני, הקונוס השמן. דמות חדשה שנוצרה במיוחד לסבב הזה (29.8) -
   // היחידה מבין השבע שגם עוצבה מאפס ולא רק צולמה מחדש.
   "dn_cony.png": "/videos/doctor-nowhere/cony.mp4",
+  // שתי דמויות חדשות (24.9). הסרטונים שלהן הם מתיחה סטטית מונפשת:
+  // התמונה הופקה, והתנועה נוספה מקומית ב-ffmpeg ולא במודל וידאו.
+  "dn_deer-monster.png": "/videos/doctor-nowhere/deer-monster.mp4",
+  "dn_siren-head.png": "/videos/doctor-nowhere/siren-head.mp4",
   // עולם "מונסטר חי": בסוף כל משימה רואים את חי האמיתי מנצח את חיבוט
   // בתחנה שבה חיבוט חיבל. הסרטון של משימה 7 הוא הניצחון הסופי.
   "mh_01_power.png": "/videos/monster-hai/mh_win_01_power.mp4",

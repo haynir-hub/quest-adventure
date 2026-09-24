@@ -346,6 +346,26 @@ export const worldsData: WorldData[] = [
         emoji: "😱",
         imageUrl: "/images/doctor-nowhere/dn_nightmare-man.png",
       },
+      {
+        id: "dn6",
+        title: "התגנבות מתחת לקרניים",
+        description:
+          "מפלצת הצבי תלתה לך את הכובע גבוה על הקרניים. זחל מתחתיה בשקט כדי לקחת אותו בחזרה",
+        missionType: "CRAWL",
+        amount: 12,
+        emoji: "🦌",
+        imageUrl: "/images/doctor-nowhere/dn_deer-monster.png",
+      },
+      {
+        id: "dn7",
+        title: "לקום אחרי הצפירה",
+        description:
+          "סירן־הד צפר לך באוזן והפיל אותך. עשה שכיבות סמיכה כדי לקום לפני הצפירה הבאה",
+        missionType: "PUSHUPS",
+        amount: 10,
+        emoji: "📢",
+        imageUrl: "/images/doctor-nowhere/dn_siren-head.png",
+      },
     ],
   },
   {

@@ -27,5 +27,11 @@
 | 19 | The Flea | dn_the-flea.png |
 | 20 | The Great Leper | dn_the-great-leper.png |
 | 21 | Sunman | dn_sunman.png |
+| 22 | Deer Monster | dn_deer-monster.png |
+| 23 | Siren Head | dn_siren-head.png |
 
 מקור: https://doctor-nowhere-creatures.fandom.com/wiki/Characters
+
+
+**22-23 לא הגיעו מהוויקי.** מפלצת הצבי וסירן־הד נוצרו מאפס ב-24.9.2026
+בסגנון הכרטיסים הקיימים (כמו קוני), ולכן אין להן מקור חיצוני.
